@@ -23,6 +23,10 @@
 대신 트레이드오프도 있다: 커널을 공유하기 때문에 VM만큼 강한 보안 격리는 아니다
 (커널 취약점이 같은 호스트의 모든 컨테이너에 영향을 줄 수 있음).
 
+> **심화 대비**: 이 격리 약점을 보완하는 장치로 seccomp(시스템 콜 필터링),
+> capabilities 제한, AppArmor/SELinux가 기본 적용되며, 더 강한 격리가 필요하면
+> gVisor·Kata Containers처럼 컨테이너를 경량 샌드박스/VM 안에서 돌리는 런타임도 있다.
+
 ### 면접 답변 템플릿
 > "컨테이너는 하이퍼바이저처럼 하드웨어를 가상화하는 게 아니라 호스트 커널을 그대로 공유하고,
 > 리눅스의 namespace와 cgroup으로 격리만 흉내 낸다. 그래서 `uname -a`를 치면 호스트와
@@ -105,13 +109,26 @@ docker exec container-b ls /tmp
 | 성격 | 불변(immutable) | 가변(mutable) |
 | 삭제 시 | 컨테이너를 못 띄움 | 컨테이너 삭제해도 안 지워짐 (명시적으로 지워야 함) |
 
-### 왜 이미지가 바뀌어도 볼륨 데이터는 그대로인가 (bind mount의 원리)
+### 용어 주의: volume mount vs bind mount는 서로 다른 마운트 타입
+Docker 공식 분류에서 스토리지 마운트는 **volume, bind mount, tmpfs, named pipe** 네 가지로
+구분되는 별개 타입이다. `docker inspect`로 확인하면 `-v mydata:/data`는 `"Type": "volume"`,
+`-v /host/path:/data`는 `"Type": "bind"`로 나온다.
+
+- **volume**: Docker 데몬이 관리하는 저장 공간 (`/var/lib/docker/volumes/...`). 이름으로 참조.
+- **bind mount**: 호스트의 임의 경로를 직접 연결. Docker가 내용을 관리하지 않음.
+
+면접에서 "볼륨은 bind mount다"라고 말하면 틀린 답이 된다. 정확한 표현은
+"볼륨도 **내부적으로는 커널의 bind mount 메커니즘**으로 컨테이너 경로에 붙지만,
+Docker 용어로는 별개의 마운트 타입"이다.
+
+### 왜 이미지가 바뀌어도 볼륨 데이터는 그대로인가 (마운트의 원리)
 컨테이너 실행 시 실제로 일어나는 순서:
 1. 이미지의 읽기 전용 레이어 + 컨테이너의 새 쓰기 레이어를 overlay filesystem으로 합쳐서
    컨테이너의 루트 파일시스템(`/`)을 구성한다.
-2. `-v 볼륨이름:/경로` 옵션을 보고, **호스트(또는 WSL2)의 실제 디렉토리**를 그 경로 위에
-   **bind mount** 한다. bind mount는 "그 경로에 원래 뭐가 있었든 상관없이, 앞으로 이 경로
-   접근은 무조건 저 실제 디렉토리로 보내라"고 커널에 지시하는 것이다.
+2. `-v 볼륨이름:/경로` 옵션을 보고, **호스트(또는 WSL2)의 실제 디렉토리**
+   (`/var/lib/docker/volumes/볼륨이름/_data`)를 그 경로 위에 마운트한다.
+   커널 입장에서는 "그 경로에 원래 뭐가 있었든 상관없이, 앞으로 이 경로 접근은
+   무조건 저 실제 디렉토리로 보내라"는 지시다.
 
 2번 단계가 1번 단계를 완전히 덮어쓰기 때문에, 컨테이너가 어떤 이미지로 떠 있든 그 경로는
 항상 같은 실제 저장소를 가리킨다. 즉 "이미지가 안 바뀌어서"가 아니라 **그 경로 자체가 이미지
@@ -126,8 +143,9 @@ docker exec container-b ls /tmp
 ### 면접 답변 템플릿
 > "컨테이너는 기본적으로 stateless하게 설계됐기 때문에, 영구 데이터는 volume이라는 별도
 > 저장 공간에 두고 mount해서 쓴다. 볼륨은 이미지 레이어 스택과 완전히 별개의 마운트 지점이라,
-> 컨테이너 생성 시 도커가 실제 디렉토리를 그 경로에 bind mount 하기 때문에 이미지가 바뀌어도
-> 항상 동일한 물리적 파일을 가리킨다."
+> 컨테이너 생성 시 도커가 볼륨의 실제 디렉토리를 그 경로 위에 마운트하기 때문에 이미지가
+> 바뀌어도 항상 동일한 물리적 파일을 가리킨다. 참고로 Docker 용어에서 volume과 bind mount는
+> 별개의 마운트 타입이고, 볼륨은 Docker 데몬이 관리하는 저장소라는 점이 다르다."
 
 ### 직접 확인한 실습
 
@@ -145,11 +163,11 @@ docker exec with-volume bash -c "echo '영구 데이터' > /data/save.txt"
 docker rm -f with-volume
 docker run --rm -v mydata:/data ubuntu:22.04 cat /data/save.txt   # → 영구 데이터
 
-# 이미지를 완전히 바꿔도 유지되는지 확인 (bind mount 증명)
+# 이미지를 완전히 바꿔도 유지되는지 확인 (별도 마운트 지점 증명)
 docker run --rm -v mydata:/data ubuntu:20.04 cat /data/save.txt   # → 영구 데이터 (동일)
 ```
 
-**실제 실행 결과 (bind mount 증명):**
+**실제 실행 결과 (별도 마운트 지점 증명):**
 
 ```
 # busybox(완전히 다른 이미지)로 확인
@@ -202,13 +220,17 @@ volumes:
   db_data:
 ```
 
+> **주의**: 위처럼 짧은 문법의 `depends_on`은 **시작 순서만** 보장한다. db 컨테이너가 떴다고
+> MySQL이 접속 가능하다는 뜻은 아니므로, "준비 완료"까지 기다리려면 db에 `healthcheck`를 정의하고
+> `depends_on: { db: { condition: service_healthy } }` 형태의 긴 문법을 써야 한다.
+
 ### 닮은 점 / 다른 점
 
 | | docker-compose | Kubernetes |
 |---|---|---|
 | 실행 범위 | 단일 호스트 | 여러 노드 |
-| 컨테이너 장애 시 | 수동 재시작 필요 | 자동 감지·재시작 (self-healing) |
-| 트래픽 증가 시 | 수동 스케일 | 조건에 따라 자동 스케일링 |
+| 컨테이너 장애 시 | `restart: always/on-failure` 정책으로 단순 재시작은 자동. 단, 프로세스가 살아있는 채 멈춘 상태(hang)는 감지 못 함 | liveness probe 등 헬스체크 기반 자동 감지·재시작 (self-healing) |
+| 트래픽 증가 시 | 수동 스케일 (`--scale`) | 조건에 따라 자동 스케일링 (HPA) |
 | 노드 장애 시 | 노드 개념 자체 없음 | 다른 노드로 자동 재배치 |
 
 둘 다 "여러 컨테이너를 YAML로 선언하면 알아서 떠 있게 한다"는 선언적(declarative) 방식은 같지만,
@@ -229,8 +251,9 @@ volumes:
 고가용성이나 노드 장애 시나리오 같은 건 재현할 수 없다.
 
 ### 환경 구성 시 참고 (Windows)
-- Docker Desktop for Windows는 WSL2 안에서 동작하며, `docker-desktop`(데몬 실행),
-  `docker-desktop-data`(실제 데이터 저장) 두 개의 WSL2 배포판을 사용한다.
+- Docker Desktop for Windows는 WSL2 안에서 동작하며, `docker-desktop`이라는 WSL2 배포판을
+  사용한다. (과거 버전은 `docker-desktop-data` 배포판을 따로 두고 데이터를 저장했지만,
+  최신 버전은 단일 배포판으로 통합됨 — `wsl -l -v`로 확인 결과 이 환경도 `docker-desktop` 하나만 존재)
 - 설치: `winget install Kubernetes.minikube`
 - 실행: `minikube start` (Docker Desktop이 정상 실행 중이어야 함)
 - 확인: `kubectl get nodes`, `kubectl cluster-info`
@@ -241,9 +264,11 @@ volumes:
 
 1. 컨테이너는 VM과 달리 호스트 커널을 공유하고 namespace/cgroup으로 격리한다 → 가볍고 빠름
 2. 이미지는 불변 레이어의 스택, 컨테이너는 그 위 얇은 쓰기 레이어 (copy-on-write)
-3. 컨테이너의 쓰기 레이어도 휘발성이므로, 영구 데이터는 volume으로 분리해 bind mount한다
+3. 컨테이너의 쓰기 레이어도 휘발성이므로, 영구 데이터는 volume으로 분리해 마운트한다
+   (volume과 bind mount는 Docker 용어상 별개의 마운트 타입)
 4. named volume은 `docker rm -v`로도 삭제되지 않는 안전장치가 있다
-5. docker-compose는 단일 호스트용 선언적 다중 컨테이너 관리, K8s는 이를 다중 노드로 확장한 것
+5. docker-compose는 단일 호스트용 선언적 다중 컨테이너 관리 (restart 정책으로 단순 재시작은
+   자동 가능), K8s는 이를 다중 노드 + 헬스체크 기반 오케스트레이션으로 확장한 것
 6. minikube는 학습용 단일 노드 압축 클러스터
 
 **다음 학습 목표**: 쿠버네티스 Pod 개념 — "왜 컨테이너 하나가 아니라 Pod라는 단위를 K8s가
