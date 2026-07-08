@@ -9,4 +9,8 @@
 
 ## 구조
 
-학습 진행하면서 주제별로 추가 예정.
+- `notes/` — 일차별 학습 정리 (md)
+
+## 학습 기록
+
+- [Day 1 — Docker 핵심 개념](notes/day01-docker-basics.md)
