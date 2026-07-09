@@ -252,8 +252,9 @@ volumes:
 
 ### 환경 구성 시 참고 (Windows)
 - Docker Desktop for Windows는 WSL2 안에서 동작하며, `docker-desktop`이라는 WSL2 배포판을
-  사용한다. (과거 버전은 `docker-desktop-data` 배포판을 따로 두고 데이터를 저장했지만,
-  최신 버전은 단일 배포판으로 통합됨 — `wsl -l -v`로 확인 결과 이 환경도 `docker-desktop` 하나만 존재)
+  사용한다. (과거에는 `docker-desktop-data` 배포판을 따로 두고 데이터를 저장했지만,
+  **Docker Desktop 4.30(2024년 5월)부터** 단일 배포판으로 통합 — `wsl -l -v`로 확인 결과
+  이 환경도 `docker-desktop` 하나만 존재)
 - 설치: `winget install Kubernetes.minikube`
 - 실행: `minikube start` (Docker Desktop이 정상 실행 중이어야 함)
 - 확인: `kubectl get nodes`, `kubectl cluster-info`

@@ -14,8 +14,9 @@
 고가용성이나 노드 장애 시나리오 같은 건 재현할 수 없다.
 
 **Windows 환경 참고**: Docker Desktop for Windows는 WSL2 안에서 동작하며,
-`docker-desktop`이라는 WSL2 배포판을 사용한다 (과거 버전은 `docker-desktop-data` 배포판을
-따로 뒀지만 최신 버전은 단일 배포판으로 통합됨 — [Day 1](day01-docker-basics.md) 정정 내용 참고).
+`docker-desktop`이라는 WSL2 배포판을 사용한다 (과거에는 `docker-desktop-data` 배포판을
+따로 뒀지만 **Docker Desktop 4.30(2024년 5월)부터** 단일 배포판으로 통합 —
+[Day 1](day01-docker-basics.md) 정정 내용 참고).
 minikube는 내부적으로 이 Docker Desktop을 driver로 사용해 클러스터를 띄운다.
 
 ### 설치
