@@ -14,3 +14,4 @@
 ## 학습 기록
 
 - [Day 1 — Docker 핵심 개념](notes/day01-docker-basics.md)
+- [Day 2 — Kubernetes 기초 (minikube, Pod/Deployment/Service, ConfigMap/Secret, DNS)](notes/day02-kubernetes-basics.md)
