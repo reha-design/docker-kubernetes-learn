@@ -14,7 +14,8 @@
 고가용성이나 노드 장애 시나리오 같은 건 재현할 수 없다.
 
 **Windows 환경 참고**: Docker Desktop for Windows는 WSL2 안에서 동작하며,
-`docker-desktop`(데몬 실행), `docker-desktop-data`(실제 데이터 저장) 두 개의 WSL2 배포판을 사용한다.
+`docker-desktop`이라는 WSL2 배포판을 사용한다 (과거 버전은 `docker-desktop-data` 배포판을
+따로 뒀지만 최신 버전은 단일 배포판으로 통합됨 — [Day 1](day01-docker-basics.md) 정정 내용 참고).
 minikube는 내부적으로 이 Docker Desktop을 driver로 사용해 클러스터를 띄운다.
 
 ### 설치
@@ -69,7 +70,7 @@ No resources found in default namespace.
 
 ---
 
-## 2. 쿠버네티스 컨트롤 플레인 컴포넌트
+## 2. 쿠버네티스 클러스터 컴포넌트 (컨트롤 플레인 + 노드 컴포넌트 + 애드온)
 
 "컴포넌트"란 시스템을 이루는 개별 구성 요소(독립적으로 실행되는 프로그램)를 뜻하는 일반 용어.
 자동차의 엔진, 브레이크, 배터리처럼, 쿠버네티스도 여러 독립된 프로그램이 협력해서 하나의
@@ -88,15 +89,22 @@ kube-scheduler-minikube            1/1     Running   0               3m52s
 storage-provisioner                1/1     Running   1 (3m23s ago)   3m48s
 ```
 
-| 컴포넌트 | 역할 |
-|---|---|
-| `kube-apiserver` | 모든 요청의 유일한 창구. `kubectl` 명령도 결국 이 API 서버에 REST 요청을 보내는 것 |
-| `etcd` | 클러스터의 모든 상태를 저장하는 key-value DB. 유일한 진실 저장소 |
-| `kube-scheduler` | 새 Pod를 어느 노드에 배치할지 결정 |
-| `kube-controller-manager` | 현재 상태를 목표 상태와 계속 맞추는 여러 컨트롤러의 묶음 (예: 컨테이너 재시작) |
-| `kube-proxy` | Service의 트래픽을 실제 Pod로 라우팅하는 규칙을 각 노드에 설정 |
-| `coredns` | 클러스터 내부 DNS. Pod 이름으로 서로 찾아갈 수 있게 함 |
-| `storage-provisioner` | 볼륨이 필요할 때 실제 저장 공간을 자동 생성 (minikube 전용, 실클라우드는 AWS EBS 등으로 대체) |
+| 분류 | 컴포넌트 | 역할 |
+|---|---|---|
+| 컨트롤 플레인 | `kube-apiserver` | 모든 요청의 유일한 창구. `kubectl` 명령도 결국 이 API 서버에 REST 요청을 보내는 것 |
+| 컨트롤 플레인 | `etcd` | 클러스터의 모든 상태를 저장하는 key-value DB. 유일한 진실 저장소 |
+| 컨트롤 플레인 | `kube-scheduler` | 새 Pod를 어느 노드에 배치할지 결정 |
+| 컨트롤 플레인 | `kube-controller-manager` | 현재 상태를 목표 상태와 계속 맞추는 여러 컨트롤러의 묶음 (예: ReplicaSet 개수 유지) |
+| 노드 컴포넌트 | `kube-proxy` | Service의 트래픽을 실제 Pod로 라우팅하는 규칙을 각 노드에 설정 |
+| 애드온 | `coredns` | 클러스터 내부 DNS. **Service 이름**으로 서로 찾아갈 수 있게 함 (7번 섹션 참고) |
+| 애드온 | `storage-provisioner` | 볼륨이 필요할 때 실제 저장 공간을 자동 생성 (minikube 전용, 실클라우드는 AWS EBS 등으로 대체) |
+
+**면접 주의 — "컨트롤 플레인 컴포넌트"의 공식 범위**는 apiserver, etcd, scheduler,
+controller-manager(+클라우드 환경의 cloud-controller-manager)까지다. `kube-proxy`와 `kubelet`은
+각 노드에서 도는 **노드 컴포넌트**, coredns는 **애드온**으로 분류된다.
+위 `kubectl get pods -n kube-system` 출력에 `kubelet`이 안 보이는 이유: kubelet은 Pod가 아니라
+노드 자체에서 직접 실행되는 프로세스(systemd 서비스 등)이기 때문. Pod를 띄우는 주체가 kubelet인데
+자기 자신이 Pod일 수는 없다.
 
 `storage-provisioner`만 `RESTARTS 1`인 것은 부팅 순서 경쟁(etcd가 아직 준비 안 된 상태에서
 먼저 접속을 시도했다가 실패)으로 흔히 발생하는 정상적인 현상.
@@ -536,13 +544,14 @@ command terminated with exit code 1
 **결과 해설**:
 - `Server: 10.96.0.10`은 coredns 자신의 IP.
 - Pod 안의 DNS 설정(`/etc/resolv.conf`)에는 짧은 이름을 완전한 이름으로 확장해주는 **search
-  목록**이 있다 (보통 `default.svc.cluster.local`, `svc.cluster.local`, `cluster.local` 순서).
-  `my-backend`라고만 치면 이 접미사들을 순서대로 하나씩 붙여가며 시도한다:
-  1. `my-backend.cluster.local` → 없음 (NXDOMAIN)
-  2. `my-backend.default.svc.cluster.local` → **매칭! `10.96.223.42`** (아까 `kubectl get
-     services`에서 확인한 그 CLUSTER-IP와 정확히 일치)
-  3. 이후의 추가 NXDOMAIN들과 `exit code 1`은 이미 답을 찾은 뒤 busybox의 간단한 `nslookup`
-     구현체가 추가 접미사를 더 시도하며 남기는 부수적인 로그일 뿐, 실제 조회 실패가 아니다.
+  목록**이 있다 (`default.svc.cluster.local`, `svc.cluster.local`, `cluster.local` 순서).
+- 핵심 결과: `my-backend.default.svc.cluster.local` → **`10.96.223.42`** (아까 `kubectl get
+  services`에서 확인한 그 CLUSTER-IP와 정확히 일치).
+- 출력에 NXDOMAIN이 성공 응답 앞뒤로 뒤섞여 보이는 이유: busybox의 간단한 `nslookup` 구현체는
+  search 접미사별 쿼리(+A/AAAA 레코드 각각)를 **병렬로 전부 날리고 도착하는 순서대로 출력**하기
+  때문. 순서대로 하나씩 시도하다 멈추는 게 아니라서, 매칭 실패한 접미사들(`*.cluster.local`,
+  `*.svc.cluster.local`)의 NXDOMAIN과 성공 응답이 섞여 나온다. `exit code 1`도 일부 쿼리가
+  NXDOMAIN이라 나오는 것일 뿐, 핵심 조회(`default.svc.cluster.local`)는 성공했다.
 
 ### 왜 DNS가 환경변수 방식보다 나은가
 
@@ -580,8 +589,12 @@ L7(HTTP) 레벨에서 호스트/경로 기반 라우팅 규칙을 정의하는 �
 |---|---|---|
 | `ClusterIP` | ❌ | 클러스터 내부에서만 접근 (기본값) |
 | `NodePort` | ✅ | 각 노드 IP + 포트로 직접 접근 (30000~32767) |
-| `LoadBalancer` | ✅ | 클라우드 LB 연동 (AWS ALB 등) — 클라우드 환경에서만 실질적 의미 |
+| `LoadBalancer` | ✅ | 클라우드 LB 연동 (AWS ALB 등). minikube에서는 `minikube tunnel`로 흉내 가능 |
 | `Ingress` | ✅ | L7 HTTP 라우팅 — 하나의 진입점에서 여러 Service로 분기 가능 |
+
+**주의**: Ingress는 Service의 네 번째 타입이 아니라 **완전히 별개의 리소스**(`kind: Ingress`)다.
+Service 타입은 ClusterIP/NodePort/LoadBalancer(+ExternalName) 뿐이고, Ingress는 그 Service들
+**앞단**에서 L7 라우팅을 얹는 다른 계층이다. 표에 같이 넣은 건 "외부 노출 방법" 비교 목적일 뿐.
 
 > **면접 답변**: "Service는 Pod 집합에 대한 고정된 내부 접근점을 제공하지만, 외부에서 여러
 > 서비스로 접근할 단일 진입점과 호스트/경로 기반 라우팅은 제공하지 않는다. Ingress는 이 역할을
@@ -978,8 +991,9 @@ certificate`(에러 코드 18)는 CA 없이 직접 서명한 인증서라서 나
 ## 오늘 배운 것 전체 흐름 요약
 
 1. minikube는 학습용 단일 노드 압축 클러스터
-2. 컨트롤 플레인 컴포넌트(API 서버, etcd, scheduler, controller-manager, kube-proxy, coredns)는
-   각자 독립 실행되며, 서로 직접 통신하지 않고 API 서버를 통해서만 협력한다
+2. 클러스터 컴포넌트는 컨트롤 플레인(API 서버, etcd, scheduler, controller-manager),
+   노드 컴포넌트(kubelet, kube-proxy), 애드온(coredns 등)으로 분류되며, 각자 독립 실행되고
+   서로 직접 통신하지 않고 API 서버를 통해서만 협력한다
 3. Pod는 네트워크/볼륨을 공유하는 컨테이너 묶음 — 컨테이너 장애는 kubelet이 같은 Pod 안에서
    복구하고, Pod 자체 소멸은 ReplicaSet이 새 Pod 생성으로 복구한다 (IP가 바뀜)
 4. Deployment(버전 관리) → ReplicaSet(개수 유지) → Pod 순으로 계층화되어 있다
