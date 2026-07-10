@@ -8,7 +8,7 @@ A personal learning log for Docker and Kubernetes, written in Korean, aimed at i
 
 ## Structure
 
-- `README.md` — repo overview, index of learning entries ("학습 기록"), and the forward roadmap ("학습 로드맵") planning Day 3–8 topics
+- `README.md` — repo overview, index of learning entries ("학습 기록"), and the forward roadmap ("학습 로드맵") planning upcoming Day topics
 - `notes/day01-docker-basics.md`, `notes/day02-kubernetes-basics.md`, etc. — one file per learning session ("Day N")
 
 When starting a new day's session, pick the topic from the README roadmap (and the previous day's `**다음 학습 목표**:` line). After finishing a day, update both the "학습 기록" list and the roadmap if the plan shifted.
