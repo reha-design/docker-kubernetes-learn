@@ -19,13 +19,10 @@
 - [Day 4 — 워크로드 타입 (PV/PVC/StorageClass, StatefulSet, Job/CronJob, DaemonSet, YAML 선언형 전환)](notes/day04-workload-types.md)
 - [Day 5 — 복습(day01~02 문답) + Docker 기초 (이미지 vs 컨테이너, Pending vs ErrImagePull, 컨테이너 vs VM)](notes/day05-docker-basics-review.md)
 
-## 학습 로드맵 (면접 대비, Day 6~11)
+## 학습 로드맵 (면접 대비)
 
-- **Day 6** — Dockerfile과 이미지 레이어, 네트워킹(Service 종류, DNS, Ingress) 기초
-- **Day 7** — liveness/readiness/startup probe + 배포 전략(rolling update 파라미터, rollback, blue-green/canary) + QoS 클래스
-- **Day 8** — 스케줄링: nodeSelector/affinity/taint/toleration + `minikube start --nodes 2` 멀티노드 실습(노드 장애 시나리오)
-- **Day 9** — Namespace, RBAC, ServiceAccount
-- **Day 10** — 트러블슈팅 집중: CrashLoopBackOff, ImagePullBackOff, Pending, OOMKilled — `kubectl describe/logs/events` 워크플로
-- **Day 11** — 아키텍처 총정리 + 모의 면접, Helm/GitOps(ArgoCD)/서비스메시(Istio) 개념 정리
+- **Day 6** — Dockerfile 작성(핵심 명령어, 레이어 캐싱, 멀티스테이지 빌드) + Docker 네트워킹(bridge/host/none, 커스텀 네트워크). K8s 네트워킹(Service/DNS/Ingress)은 Day 2에서 이미 다뤄 제외
 
-> 일정 압축 시: Day 8 스케줄링을 Day 10 트러블슈팅(Pending 원인 분석)에 흡수 가능.
+> Day 7 이후 로드맵은 기존 학습 내용 점검(빠진 주제 확인) 결과를 반영해 재확정 예정.
+> 미학습 후보: probe/배포 전략/QoS, 스케줄링(affinity/taint)과 멀티노드, Namespace/RBAC,
+> 트러블슈팅 워크플로(CrashLoopBackOff 등), 아키텍처 총정리 + Helm/GitOps 개념.
