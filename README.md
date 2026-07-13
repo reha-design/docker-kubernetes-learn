@@ -24,7 +24,7 @@
 
 CKA/CKAD 공식 커리큘럼(Kubernetes v1.35 기준, 2026-07 조회)과 Day 1~6 학습 기록을 대조해 확정.
 
-- **Day 7** — liveness/readiness/startup probe + 배포 전략(rolling update 파라미터, rollback, blue-green/canary) + QoS 클래스
+- **Day 7 (브리지 실습 먼저)** — Docker→K8s 연결: 직접 빌드한 이미지를 minikube에 배포(`minikube image load`, imagePullPolicy, ImagePullBackOff 체험) + ENTRYPOINT vs CMD + Docker Compose 실습(web+db 이름 통신). 이후 본 주제: liveness/readiness/startup probe + 배포 전략(rolling update 파라미터, rollback, blue-green/canary) + QoS 클래스
 - **Day 8** — 스케줄링: nodeSelector/affinity/taint/toleration + `minikube start --nodes 2` 멀티노드 실습 + init 컨테이너/사이드카 패턴
 - **Day 9** — Namespace, RBAC, ServiceAccount + ResourceQuota/LimitRange + SecurityContext
 - **Day 10** — NetworkPolicy + Gateway API (Ingress와 비교)
