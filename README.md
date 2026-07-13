@@ -17,13 +17,15 @@
 - [Day 2 — Kubernetes 기초 (minikube, Pod/Deployment/Service, ConfigMap/Secret, DNS)](notes/day02-kubernetes-basics.md)
 - [Day 3 — HPA 심화와 스케줄링/자원 관리 (HPA max, 노드 자원 장부, Pending vs OOMKilled)](notes/day03-hpa-scheduling.md)
 - [Day 4 — 워크로드 타입 (PV/PVC/StorageClass, StatefulSet, Job/CronJob, DaemonSet, YAML 선언형 전환)](notes/day04-workload-types.md)
+- [Day 5 — 복습(day01~02 문답) + Docker 기초 (이미지 vs 컨테이너, Pending vs ErrImagePull, 컨테이너 vs VM)](notes/day05-docker-basics-review.md)
 
-## 학습 로드맵 (면접 대비, Day 5~9)
+## 학습 로드맵 (면접 대비, Day 6~11)
 
-- **Day 5** — liveness/readiness/startup probe + 배포 전략(rolling update 파라미터, rollback, blue-green/canary) + QoS 클래스
-- **Day 6** — 스케줄링: nodeSelector/affinity/taint/toleration + `minikube start --nodes 2` 멀티노드 실습(노드 장애 시나리오)
-- **Day 7** — Namespace, RBAC, ServiceAccount
-- **Day 8** — 트러블슈팅 집중: CrashLoopBackOff, ImagePullBackOff, Pending, OOMKilled — `kubectl describe/logs/events` 워크플로
-- **Day 9** — 아키텍처 총정리 + 모의 면접, Helm/GitOps(ArgoCD)/서비스메시(Istio) 개념 정리
+- **Day 6** — Dockerfile과 이미지 레이어, 네트워킹(Service 종류, DNS, Ingress) 기초
+- **Day 7** — liveness/readiness/startup probe + 배포 전략(rolling update 파라미터, rollback, blue-green/canary) + QoS 클래스
+- **Day 8** — 스케줄링: nodeSelector/affinity/taint/toleration + `minikube start --nodes 2` 멀티노드 실습(노드 장애 시나리오)
+- **Day 9** — Namespace, RBAC, ServiceAccount
+- **Day 10** — 트러블슈팅 집중: CrashLoopBackOff, ImagePullBackOff, Pending, OOMKilled — `kubectl describe/logs/events` 워크플로
+- **Day 11** — 아키텍처 총정리 + 모의 면접, Helm/GitOps(ArgoCD)/서비스메시(Istio) 개념 정리
 
-> 일정 압축 시: Day 6 스케줄링을 Day 8 트러블슈팅(Pending 원인 분석)에 흡수 가능.
+> 일정 압축 시: Day 8 스케줄링을 Day 10 트러블슈팅(Pending 원인 분석)에 흡수 가능.
