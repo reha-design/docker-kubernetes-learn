@@ -247,6 +247,23 @@ Address: 10.244.0.6
 ```
 `get pods -o wide`로 확인한 `web-0`의 실제 Pod IP(`10.244.0.6`)와 정확히 일치했다.
 
+**Pod별 전용 PVC 확인** (Day 6 세션 시작 시 정리 과정에서 확인한 출력):
+```
+NAME                              STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+persistentvolumeclaim/test-pvc    Bound    pvc-0cabc724-a759-442a-8ec6-18968ab386aa   1Gi        RWO            standard       2d3h
+persistentvolumeclaim/www-web-0   Bound    pvc-199e5c00-c68f-444d-ab2a-2cbc3142ff61   1Gi        RWO            standard       2d3h
+persistentvolumeclaim/www-web-1   Bound    pvc-6e26d8ef-018f-475e-9cd1-5287a9cec92d   1Gi        RWO            standard       2d3h
+persistentvolumeclaim/www-web-2   Bound    pvc-7b91f872-e399-4b7c-a750-5c2c327352ef   1Gi        RWO            standard       2d3h
+```
+`volumeClaimTemplates`의 이름(`www`) + Pod 이름(`web-0/1/2`) 조합으로 **Pod마다 별도의
+PVC**(`www-web-0`, `www-web-1`, `www-web-2`)가 자동 생성됐고, 각각 서로 다른 PV에 바인딩됐다.
+Deployment에서 Pod들이 볼륨을 공유하는 것과 달리, StatefulSet의 각 Pod는 자기 전용 스토리지를
+갖는다는 것이 실제 리소스로 확인된 것.
+
+**정리 시 주의**: StatefulSet을 삭제해도 이 PVC들은 **의도적으로 남는다** — 실수로 StatefulSet을
+지웠다 다시 만들어도 데이터가 유지되도록 한 안전장치. 완전히 정리하려면
+`kubectl delete pvc www-web-0 www-web-1 www-web-2`처럼 명시적으로 삭제해야 한다.
+
 **트러블슈팅**: 짧은 이름(`web-0.nginx-headless`)으로 `nslookup`을 시도했을 때는
 `NXDOMAIN`이 떴다. 이는 클러스터 DNS 문제가 아니라 busybox의 musl libc 기반 `nslookup`이
 resolv.conf의 search domain을 제대로 못 타는 known limitation 때문이었다. 전체
