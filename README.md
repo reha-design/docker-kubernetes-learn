@@ -19,6 +19,7 @@
 - [Day 4 — 워크로드 타입 (PV/PVC/StorageClass, StatefulSet, Job/CronJob, DaemonSet, YAML 선언형 전환)](notes/day04-workload-types.md)
 - [Day 5 — 복습(day01~02 문답) + Docker 기초 (이미지 vs 컨테이너, Pending vs ErrImagePull, 컨테이너 vs VM)](notes/day05-docker-basics-review.md)
 - [Day 6 — Dockerfile과 이미지 레이어(캐싱, 멀티스테이지 빌드) + Docker 네트워킹(bridge/커스텀 네트워크 DNS/격리)](notes/day06-dockerfile-networking.md)
+- [Day 7 — Docker→K8s 브리지 (ENTRYPOINT vs CMD, 이미지 유통 경로와 ImagePullBackOff, imagePullPolicy)](notes/day07-docker-k8s-bridge.md) *(진행 중 — probe/배포 전략/QoS 예정)*
 
 ## 학습 로드맵 (면접 대비, Day 7~12)
 
