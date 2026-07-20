@@ -21,6 +21,7 @@
 - [Day 6 — Dockerfile과 이미지 레이어(캐싱, 멀티스테이지 빌드) + Docker 네트워킹(bridge/커스텀 네트워크 DNS/격리)](notes/day06-dockerfile-networking.md)
 - [Day 7 — Docker→K8s 브리지 (ENTRYPOINT vs CMD, 이미지 유통 경로, imagePullPolicy) + Probe/배포 전략/QoS + Docker Compose](notes/day07-docker-k8s-bridge.md)
 - [복습 문답 1회차 — Day 1~7 전체 점검, 취약 지점 평가와 복습 우선순위](notes/review01-day01-07-quiz.md)
+- [회상형 워크북 1호 — 취약 지점 인출 훈련 (먼저 쓰고, 정답 펼쳐 대조)](notes/review01-workbook.md)
 
 ## 학습 로드맵 (면접 대비, Day 7~12)
 
