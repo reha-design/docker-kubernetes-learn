@@ -1,0 +1,46 @@
+<svg width="680" height="350" viewBox="0 0 680 350" xmlns="http://www.w3.org/2000/svg" role="img" font-family="'Malgun Gothic', 'Apple SD Gothic Neo', Arial, sans-serif">
+  <title>Dockerfile 레이어 캐시 — 명령어 순서에 따른 캐시 무효화 비교</title>
+  <desc>COPY를 먼저 두면 소스가 바뀔 때마다 npm install까지 다시 실행되지만, 의존성 파일만 먼저 복사하면 install이 캐시로 재사용된다.</desc>
+  <rect x="0" y="0" width="680" height="350" fill="#FFFFFF"/>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#5F5E5A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <text x="180" y="30" text-anchor="middle" font-size="14" font-weight="500" fill="#712B13">나쁜 순서 (매번 느림)</text>
+  <text x="500" y="30" text-anchor="middle" font-size="14" font-weight="500" fill="#085041">좋은 순서 (캐시 활용)</text>
+
+  <!-- 컬럼 A: 나쁜 순서 -->
+  <rect x="60" y="50" width="240" height="44" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="180" y="77" text-anchor="middle" font-size="14" font-weight="500" fill="#2C2C2A">FROM node:20</text>
+  <line x1="180" y1="94" x2="180" y2="110" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <rect x="60" y="110" width="240" height="56" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="180" y="133" text-anchor="middle" font-size="14" font-weight="500" fill="#2C2C2A">COPY . .</text>
+  <text x="180" y="153" text-anchor="middle" font-size="12" fill="#5F5E5A">소스 전체 복사</text>
+  <line x1="180" y1="166" x2="180" y2="182" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <rect x="60" y="182" width="240" height="56" rx="8" fill="#FAECE7" stroke="#993C1D" stroke-width="1"/>
+  <text x="180" y="205" text-anchor="middle" font-size="14" font-weight="500" fill="#712B13">RUN npm install</text>
+  <text x="180" y="225" text-anchor="middle" font-size="12" fill="#993C1D">캐시 미스 → 매번 재설치</text>
+
+  <!-- 컬럼 B: 좋은 순서 -->
+  <rect x="380" y="50" width="240" height="44" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="500" y="77" text-anchor="middle" font-size="14" font-weight="500" fill="#2C2C2A">FROM node:20</text>
+  <line x1="500" y1="94" x2="500" y2="110" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <rect x="380" y="110" width="240" height="56" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="500" y="133" text-anchor="middle" font-size="14" font-weight="500" fill="#2C2C2A">COPY package*.json</text>
+  <text x="500" y="153" text-anchor="middle" font-size="12" fill="#5F5E5A">의존성 목록만 복사</text>
+  <line x1="500" y1="166" x2="500" y2="182" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <rect x="380" y="182" width="240" height="56" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1"/>
+  <text x="500" y="205" text-anchor="middle" font-size="14" font-weight="500" fill="#085041">RUN npm install</text>
+  <text x="500" y="225" text-anchor="middle" font-size="12" fill="#0F6E56">캐시 재사용 (설치 생략)</text>
+  <line x1="500" y1="238" x2="500" y2="254" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <rect x="380" y="254" width="240" height="56" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="500" y="277" text-anchor="middle" font-size="14" font-weight="500" fill="#2C2C2A">COPY . .</text>
+  <text x="500" y="297" text-anchor="middle" font-size="12" fill="#5F5E5A">소스 전체 복사</text>
+</svg>

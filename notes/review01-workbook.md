@@ -29,6 +29,8 @@
 
 **Q.** 이미지 하나로 컨테이너 10개를 띄웠다. 디스크에는 무엇이 공유되고, 컨테이너마다 무엇이 새로 생기나? 컨테이너 안에서 만든 파일이 재시작 후 사라지는 이유를 이 구조로 설명하라.
 
+(구조도: [notes/day01-docker-basics.md](day01-docker-basics.md#2-이미지image와-레이어--copy-on-write) 2번 섹션 참고 — 정답 확인 전에는 보지 말 것)
+
 **내 답변 (1회차):**
 
 <br><br><br><br>
@@ -48,6 +50,8 @@
 ## 2. Dockerfile 레이어 캐시 (Day 6 — 지난 평가 △)
 
 **Q.** `COPY . .`을 `RUN npm install`보다 앞에 두면 무슨 문제가 생기나? 캐시 무효화 규칙과 정석 순서까지 쓰라.
+
+(구조도: [notes/day06-dockerfile-networking.md](day06-dockerfile-networking.md#2-레이어-캐싱--명령어-순서가-빌드-속도를-좌우한다) 2번 섹션 참고 — 정답 확인 전에는 보지 말 것)
 
 **내 답변 (1회차):**
 
@@ -91,6 +95,8 @@
 
 **Q.** 설정을 이미지 밖으로 빼는 **핵심** 이유는? ConfigMap과 Secret의 차이 3가지는? "Secret은 암호화되어 저장된다"는 말은 맞나?
 
+(구조도: [notes/day02-kubernetes-basics.md](day02-kubernetes-basics.md#6-configmap과-secret--설정과-민감정보-분리) 6번 섹션 참고 — 정답 확인 전에는 보지 말 것)
+
 **내 답변 (1회차):**
 
 <br><br><br><br>
@@ -110,6 +116,8 @@
 
 **Q.** 파드 A가 `my-service`라는 이름으로 다른 파드에 접속된다. 이름이 IP가 되기까지의 과정을 등장 컴포넌트(2개 이상) 중심으로 쓰라. Docker Compose의 이름 통신과 무엇이 같고 무엇이 다른가?
 
+(구조도: [notes/day02-kubernetes-basics.md](day02-kubernetes-basics.md#7-service를-dns로-찾기--coredns-상세-설명) 7번 섹션 참고 — 정답 확인 전에는 보지 말 것)
+
 **내 답변 (1회차):**
 
 <br><br><br><br>
@@ -128,6 +136,8 @@
 ## 6. requests vs limits (Day 3 — 지난 평가 △, 2순위)
 
 **Q.** requests와 limits를 각각 정의하라. Pending과 OOMKilled는 각각 어느 쪽과 관련 있고, 그 이유는? 이 조합이 결정하는 Day 7 개념은?
+
+(구조도: [notes/day03-hpa-scheduling.md](day03-hpa-scheduling.md#4-핵심-개념-비교-정리--pending-vs-oomkilled) 4번 섹션 참고 — 정답 확인 전에는 보지 말 것)
 
 **내 답변 (1회차):**
 
@@ -151,6 +161,8 @@
 
 **Q.** HPA는 기본적으로 **무엇을 무엇에 대비한 비율**로 보나? requests가 없으면 HPA는 어떻게 되나? max replicas 도달 후에도 부하가 계속 오르면?
 
+(구조도: [notes/day03-hpa-scheduling.md](day03-hpa-scheduling.md#1-hpa의-max상한선-테스트--왜-max까지-안-늘어나는가) 1번 섹션 참고 — 정답 확인 전에는 보지 말 것)
+
 **내 답변 (1회차):**
 
 <br><br><br><br>
@@ -169,6 +181,8 @@
 ## 8. StatefulSet (Day 4 — 지난 평가 △)
 
 **Q.** Deployment 대신 StatefulSet을 쓰는 경우는? StatefulSet이 보장하는 두 가지는? Deployment 파드로는 왜 안 되나?
+
+(구조도: [notes/day04-workload-types.md](day04-workload-types.md#2-statefulset) 2번 섹션 참고 — 정답 확인 전에는 보지 말 것)
 
 **내 답변 (1회차):**
 
@@ -190,6 +204,8 @@
 
 **Q.** 두 프로브가 각각 실패하면 무슨 일이 일어나나? 왜 하나로 합치지 않고 분리했나? (Day 7 실습에서 본 숫자를 근거로 들 수 있으면 만점)
 
+(구조도: [notes/day07-docker-k8s-bridge.md](day07-docker-k8s-bridge.md#4-liveness--readiness--startup-probe--running과-ready는-다르다) 4번 섹션 참고 — 정답 확인 전에는 보지 말 것)
+
 **내 답변 (1회차):**
 
 <br><br><br><br>
@@ -209,6 +225,8 @@
 ## 10. 무중단 배포의 두 설정 — Day 7 이월 재시험
 
 **Q.** 롤링 업데이트 중 새 버전 이미지가 고장(ImagePullBackOff)났는데도 서비스가 무중단이었다. 이를 가능하게 한 설정 두 가지와 각각의 역할은?
+
+(구조도: [notes/day07-docker-k8s-bridge.md](day07-docker-k8s-bridge.md#5-배포-전략--rolling-update-파라미터-롤백-blue-greencanary) 5번 섹션 참고 — 정답 확인 전에는 보지 말 것)
 
 **내 답변 (1회차):**
 

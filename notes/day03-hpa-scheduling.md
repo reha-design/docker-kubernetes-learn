@@ -9,6 +9,8 @@
 
 ## 1. HPA의 max(상한선) 테스트 — "왜 max까지 안 늘어나는가"
 
+![HPA가 max replicas에 도달한 이후 벌어지는 일](../picture/hpa-max-limit.svg)
+
 ### 개념 — HPA의 계산 공식
 
 HPA는 매 sync 주기(기본 15초)마다 아래 공식으로 목표 replica 수를 계산한다:
@@ -260,6 +262,8 @@ kubectl delete pod too-big-pod
 ---
 
 ## 4. 핵심 개념 비교 정리 — Pending vs OOMKilled
+
+![requests와 limits — Pending과 OOMKilled의 갈림길](../picture/requests-limits-pending-oom.svg)
 
 | 구분 | **Pending** | **OOMKilled** |
 |---|---|---|

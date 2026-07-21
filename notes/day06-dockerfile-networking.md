@@ -78,6 +78,8 @@ PS> curl.exe http://localhost:8080
 
 ## 2. 레이어 캐싱 — 명령어 순서가 빌드 속도를 좌우한다
 
+![Dockerfile 레이어 캐시 — 명령어 순서에 따른 캐시 무효화 비교](../picture/dockerfile-layer-cache.svg)
+
 ### 개념
 
 - Docker는 각 단계마다 "명령어 + 입력 파일 내용(체크섬)"을 비교해, 달라진 게 없으면 이전

@@ -383,6 +383,8 @@ Pod는 완전히 새로운 이름과 IP로 재생성됐지만, Service의 IP는 
 
 ## 6. ConfigMap과 Secret — 설정과 민감정보 분리
 
+![ConfigMap과 Secret이 Pod에 주입되는 구조](../picture/configmap-secret.svg)
+
 이미지는 **불변(immutable)** 레이어다. 그런데 개발/스테이징/프로덕션마다 DB 주소, API URL
 같은 설정값이 다르다. 이걸 이미지 안에 하드코딩하면, 환경이 바뀔 때마다 이미지를 새로 빌드해야
 한다 — 코드는 하나도 안 바뀌었는데도. 이는 "코드와 설정을 분리하라"는 원칙(12-factor app 등)에
@@ -513,6 +515,8 @@ HOME=/root
 ---
 
 ## 7. Service를 DNS로 찾기 — coredns 상세 설명
+
+![Service를 이름으로 찾는 과정 — CoreDNS와 kube-proxy](../picture/service-dns.svg)
 
 ### 환경변수 방식의 근본적 한계
 

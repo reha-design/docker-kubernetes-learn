@@ -1,0 +1,42 @@
+<svg width="680" height="314" viewBox="0 0 680 314" xmlns="http://www.w3.org/2000/svg" role="img" font-family="'Malgun Gothic', 'Apple SD Gothic Neo', Arial, sans-serif">
+  <title>requests와 limits — Pending과 OOMKilled의 갈림길</title>
+  <desc>requests는 배치 전 스케줄러가 심사해 자리가 없으면 Pending이 되고, limits는 실행 중 커널이 단속해 초과하면 OOMKilled가 된다.</desc>
+  <rect x="0" y="0" width="680" height="314" fill="#FFFFFF"/>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#5F5E5A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <text x="60" y="38" font-size="14" font-weight="500" fill="#2C2C2A">① 배치 전 — requests 심사</text>
+
+  <rect x="60" y="50" width="175" height="64" rx="10" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="147" y="76" text-anchor="middle" font-size="14" font-weight="500" fill="#2C2C2A">Pod 생성</text>
+  <text x="147" y="97" text-anchor="middle" font-size="12" fill="#5F5E5A">requests 지정됨</text>
+  <line x1="235" y1="82" x2="255" y2="82" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <rect x="255" y="50" width="175" height="64" rx="10" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="342" y="76" text-anchor="middle" font-size="14" font-weight="500" fill="#2C2C2A">스케줄러 심사</text>
+  <text x="342" y="97" text-anchor="middle" font-size="12" fill="#5F5E5A">빈 노드 있는지 확인</text>
+  <line x1="430" y1="82" x2="450" y2="82" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <rect x="450" y="50" width="175" height="64" rx="10" fill="#FAECE7" stroke="#993C1D" stroke-width="1"/>
+  <text x="537" y="76" text-anchor="middle" font-size="14" font-weight="500" fill="#712B13">빈 노드 없음</text>
+  <text x="537" y="97" text-anchor="middle" font-size="12" fill="#993C1D">Pending</text>
+
+  <text x="60" y="178" font-size="14" font-weight="500" fill="#2C2C2A">② 실행 중 — limits 단속</text>
+
+  <rect x="60" y="190" width="175" height="64" rx="10" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="147" y="216" text-anchor="middle" font-size="14" font-weight="500" fill="#2C2C2A">컨테이너 실행 중</text>
+  <text x="147" y="237" text-anchor="middle" font-size="12" fill="#5F5E5A">사용량 증가</text>
+  <line x1="235" y1="222" x2="255" y2="222" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <rect x="255" y="190" width="175" height="64" rx="10" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="342" y="216" text-anchor="middle" font-size="14" font-weight="500" fill="#2C2C2A">limits 초과</text>
+  <text x="342" y="237" text-anchor="middle" font-size="12" fill="#5F5E5A">메모리 상한 넘음</text>
+  <line x1="430" y1="222" x2="450" y2="222" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <rect x="450" y="190" width="175" height="64" rx="10" fill="#FAECE7" stroke="#993C1D" stroke-width="1"/>
+  <text x="537" y="216" text-anchor="middle" font-size="14" font-weight="500" fill="#712B13">커널이 감지</text>
+  <text x="537" y="237" text-anchor="middle" font-size="12" fill="#993C1D">OOMKilled</text>
+</svg>

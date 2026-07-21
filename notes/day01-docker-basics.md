@@ -59,6 +59,8 @@ Linux 07850d6e343f 6.6.87.2-microsoft-standard-WSL2 #1 SMP PREEMPT_DYNAMIC Thu J
 
 ## 2. 이미지(Image)와 레이어 — copy-on-write
 
+![이미지 레이어 구조 — 읽기 전용 레이어 공유와 쓰기 레이어](../picture/image-layers.svg)
+
 ### 핵심 개념
 - **이미지** = 읽기 전용(immutable) 레이어들의 스택. "이 컨테이너가 무엇을 실행하는가"에 대한 답.
 - **컨테이너** = 이미지 위에 얹는 아주 얇은 **쓰기 가능 레이어(writable layer)** 하나.

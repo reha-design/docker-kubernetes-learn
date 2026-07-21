@@ -232,6 +232,8 @@ kubelet이 이미지를 구할 때 따르는 정책. `imagePullPolicy`를 생략
 
 ## 4. Liveness / Readiness / Startup Probe — Running과 Ready는 다르다
 
+![readinessProbe와 livenessProbe 실패 시 반응 차이](../picture/readiness-vs-liveness.svg)
+
 ### 개념
 
 프로세스가 떠 있다고 해서 정상인 게 아니다. 데드락에 걸려 응답을 못 하는 상태,
@@ -351,6 +353,8 @@ Endpoints는 서비스당 오브젝트 1개에 모든 파드 IP를 담는 구조
 ---
 
 ## 5. 배포 전략 — Rolling Update 파라미터, 롤백, blue-green/canary
+
+![무중단 배포를 지키는 두 설정 — maxUnavailable과 readiness](../picture/rolling-update-safety.svg)
 
 ### 개념
 

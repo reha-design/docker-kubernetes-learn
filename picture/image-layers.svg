@@ -1,0 +1,36 @@
+<svg width="680" height="250" viewBox="0 0 680 250" xmlns="http://www.w3.org/2000/svg" role="img" font-family="'Malgun Gothic', 'Apple SD Gothic Neo', Arial, sans-serif">
+  <title>이미지 레이어 구조 — 읽기 전용 레이어 공유와 쓰기 레이어</title>
+  <desc>두 컨테이너가 같은 이미지의 읽기 전용 레이어 3개를 공유하고, 각자 자신만의 쓰기 레이어를 위에 얹은 구조를 보여준다.</desc>
+  <rect x="0" y="0" width="680" height="250" fill="#FFFFFF"/>
+
+  <text x="230" y="30" text-anchor="middle" font-size="14" font-weight="500" fill="#2C2C2A">컨테이너 A</text>
+  <text x="470" y="30" text-anchor="middle" font-size="14" font-weight="500" fill="#2C2C2A">컨테이너 B</text>
+
+  <!-- 쓰기 레이어 (컨테이너 전용) -->
+  <rect x="140" y="44" width="180" height="36" fill="#FAECE7" stroke="#993C1D" stroke-width="1"/>
+  <text x="230" y="67" text-anchor="middle" font-size="13" font-weight="500" fill="#712B13">쓰기 레이어</text>
+  <rect x="380" y="44" width="180" height="36" fill="#FAECE7" stroke="#993C1D" stroke-width="1"/>
+  <text x="470" y="67" text-anchor="middle" font-size="13" font-weight="500" fill="#712B13">쓰기 레이어</text>
+
+  <!-- 읽기 전용 레이어 3장 (공유) -->
+  <rect x="140" y="80" width="180" height="32" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="230" y="101" text-anchor="middle" font-size="12" fill="#444441">Layer 3</text>
+  <rect x="380" y="80" width="180" height="32" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="470" y="101" text-anchor="middle" font-size="12" fill="#444441">Layer 3</text>
+
+  <rect x="140" y="112" width="180" height="32" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="230" y="133" text-anchor="middle" font-size="12" fill="#444441">Layer 2</text>
+  <rect x="380" y="112" width="180" height="32" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="470" y="133" text-anchor="middle" font-size="12" fill="#444441">Layer 2</text>
+
+  <rect x="140" y="144" width="180" height="32" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="230" y="165" text-anchor="middle" font-size="12" fill="#444441">Layer 1</text>
+  <rect x="380" y="144" width="180" height="32" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="470" y="165" text-anchor="middle" font-size="12" fill="#444441">Layer 1</text>
+
+  <!-- 공유 표시 -->
+  <rect x="110" y="76" width="460" height="104" fill="none" stroke="#5F5E5A" stroke-width="1" stroke-dasharray="4 3" rx="6"/>
+
+  <text x="340" y="204" text-anchor="middle" font-size="12" fill="#5F5E5A">이미지 레이어 — 모든 컨테이너가 디스크에서 공유</text>
+  <text x="340" y="226" text-anchor="middle" font-size="12" fill="#993C1D">쓰기 레이어 — 컨테이너마다 별도, 재시작하면 사라짐</text>
+</svg>

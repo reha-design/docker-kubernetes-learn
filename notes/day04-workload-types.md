@@ -144,6 +144,8 @@ test-pvc   Bound    pvc-0cabc724-a759-442a-8ec6-18968ab386aa   1Gi        RWO   
 
 ## 2. StatefulSet
 
+![Deployment와 StatefulSet의 파드 차이](../picture/statefulset-vs-deployment.svg)
+
 ### 개념
 
 Deployment는 Pod들이 서로 완전히 동일하고 대체 가능(interchangeable)하다고 가정한다.
