@@ -304,6 +304,11 @@ my-backend-85646c7ff-r4dbf    ← Pod
 
 ## 5. Service — 왜 필요한가
 
+![Pod, Deployment, Service 관계 구조도](../picture/pod-deployment-service.svg)
+
+> 클라이언트 요청 → Service(고정 IP) → Deployment가 유지하는 Pod 3개. Pod는 재생성될 때마다
+> IP가 바뀌므로, 그 앞에서 라벨 셀렉터로 고정 창구 역할을 하는 게 Service다.
+
 Pod는 재생성될 때마다 IP가 바뀐다. 만약 프론트엔드가 백엔드 Pod의 IP를 직접 알고 접속한다면,
 Pod가 재생성될 때마다 설정을 바꿔야 하는 문제가 생긴다.
 

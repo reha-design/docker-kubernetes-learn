@@ -69,6 +69,8 @@
 
 **Q.** 세 리소스가 각각 왜 필요한가? 특히 "Deployment만 있으면 되지, Service는 왜 따로 있나?"에 답하라.
 
+(관계 구조도: [notes/day02-kubernetes-basics.md](day02-kubernetes-basics.md#5-service--왜-필요한가) 5번 섹션 참고 — 정답 확인 전에는 보지 말 것)
+
 **내 답변 (1회차):**
 
 <br><br><br><br>
