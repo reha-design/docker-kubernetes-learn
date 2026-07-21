@@ -12,12 +12,12 @@
 
 | # | 항목 | 1회차 ( / ) | 2회차 ( / ) | 3회차 ( / ) |
 |---|---|---|---|---|
-| 1 | 이미지 레이어 구조 | | | |
-| 2 | Dockerfile 레이어 캐시 | | | |
-| 3 | Pod/Deployment/Service | | | |
-| 4 | ConfigMap vs Secret | | | |
-| 5 | Service DNS 동작 원리 | | | |
-| 6 | requests vs limits | | | |
+| 1 | 이미지 레이어 구조 | △ | | |
+| 2 | Dockerfile 레이어 캐시 | △ | | |
+| 3 | Pod/Deployment/Service | ○ | | |
+| 4 | ConfigMap vs Secret | ○ | | |
+| 5 | Service DNS 동작 원리 | ○ | | |
+| 6 | requests vs limits | ○ | | |
 | 7 | HPA max 도달 이후 | | | |
 | 8 | StatefulSet | | | |
 | 9 | readiness vs liveness (이월) | | | |
@@ -31,9 +31,9 @@
 
 (구조도: [notes/day01-docker-basics.md](day01-docker-basics.md#2-이미지image와-레이어--copy-on-write) 2번 섹션 참고 — 정답 확인 전에는 보지 말 것)
 
-**내 답변 (1회차):**
+**내 답변 (1회차):** 이미지 하나로 컨테이너를 10개 띄웠을 경우, 디스크에서는 이미지만 공유되고 컨테이너마다 읽기 레이어가 새로 생긴다. 컨테이너 안에서 만든 파일이 있을 경우 컨테이너 재시작할 때, 기존 이미지 기반으로 재시작하기 때문에 작업했던 내용이 초기화될 수 있다.
 
-<br><br><br><br>
+> 채점: △ — "읽기 레이어가 새로 생긴다"는 오류(정답은 **쓰기 레이어**). 읽기 전용 레이어는 공유되는 것이지 새로 생기는 게 아님.
 
 <details>
 <summary>▶ 정답 확인</summary>
@@ -53,9 +53,9 @@
 
 (구조도: [notes/day06-dockerfile-networking.md](day06-dockerfile-networking.md#2-레이어-캐싱--명령어-순서가-빌드-속도를-좌우한다) 2번 섹션 참고 — 정답 확인 전에는 보지 말 것)
 
-**내 답변 (1회차):**
+**내 답변 (1회차):** 캐싱이 안 되고 다시 재작업하는 경우가 발생해.
 
-<br><br><br><br>
+> 채점: △ — 증상은 맞았지만 무효화 규칙(한 레이어 미스 → 그 뒤 전부 재실행)과 정석 순서가 빠짐. Day 6 실측 예제(flask-bad 5.5s vs flask-good 1.6s)로 보충 설명함.
 
 <details>
 <summary>▶ 정답 확인</summary>
@@ -75,9 +75,9 @@
 
 (관계 구조도: [notes/day02-kubernetes-basics.md](day02-kubernetes-basics.md#5-service--왜-필요한가) 5번 섹션 참고 — 정답 확인 전에는 보지 말 것)
 
-**내 답변 (1회차):**
+**내 답변 (1회차):** Pod는 실행 단위, Deployment는 개수·버전 관리, Service는 파드 IP 앞의 고정 창구
 
-<br><br><br><br>
+> 채점: ○ — 결론 요약은 정확. "Pod가 재생성될 때마다 IP가 바뀌어서 Deployment만으론 접속 문제를 못 푼다"는 인과관계 설명이 빠짐.
 
 <details>
 <summary>▶ 정답 확인</summary>
@@ -97,9 +97,9 @@
 
 (구조도: [notes/day02-kubernetes-basics.md](day02-kubernetes-basics.md#6-configmap과-secret--설정과-민감정보-분리) 6번 섹션 참고 — 정답 확인 전에는 보지 말 것)
 
-**내 답변 (1회차):**
+**내 답변 (1회차):** 핵심 이유는 환경별로 이미지 재빌드 안 해도 되게 하려고. 차이: ① ConfigMap은 일반 설정, Secret은 민감정보 ② RBAC 권한 따로 지정 가능. Secret은 암호화되는 것이 아닌 base64로 인코딩되는 것.
 
-<br><br><br><br>
+> 채점: ○ — 핵심 이유를 부수 효과(재빌드 회피)와 혼동(정정: 핵심은 "같은 이미지를 전 환경에서 그대로 쓰기 위해"). 차이 3가지 중 2개(민감정보 구분, RBAC)는 맞았고 ③ etcd 암호화 대상 지정 가능이 빠짐. base64 vs 암호화 구분은 정확.
 
 <details>
 <summary>▶ 정답 확인</summary>
@@ -118,9 +118,9 @@
 
 (구조도: [notes/day02-kubernetes-basics.md](day02-kubernetes-basics.md#7-service를-dns로-찾기--coredns-상세-설명) 7번 섹션 참고 — 정답 확인 전에는 보지 말 것)
 
-**내 답변 (1회차):**
+**내 답변 (1회차):** CoreDNS가 my-service를 ClusterIP로 해석해주고, kube-proxy가 Ready 파드로 트래픽을 분배해준다. Compose와 같은 점은 이름으로 찾는 것이고, 다른 점은 로드밸런싱 여부.
 
-<br><br><br><br>
+> 채점: ○ — 컴포넌트 2개(CoreDNS, kube-proxy) 정확. Compose 비교도 핵심은 맞았으나 "Ready 파드만 골라줌"도 다른 점에 포함되면 더 완전한 답.
 
 <details>
 <summary>▶ 정답 확인</summary>
@@ -139,9 +139,9 @@
 
 (구조도: [notes/day03-hpa-scheduling.md](day03-hpa-scheduling.md#4-핵심-개념-비교-정리--pending-vs-oomkilled) 4번 섹션 참고 — 정답 확인 전에는 보지 말 것)
 
-**내 답변 (1회차):**
+**내 답변 (1회차):** requests: 컨테이너가 필요로 하는 최소보장 예약량, 스케줄러가 파드를 어느 노드에 놓을지 결정할 때 보는 숫자. limits: 컨테이너가 쓸 수 있는 사용 상한선. Pending은 requests 관련 — 노드마다 이미 예약된 requests 합계 장부가 있는데, 새 파드가 요구하는 requests만큼 빈자리가 있는 노드가 클러스터 어디에도 없으면 배치되지 않고 Pending으로 남음. OOMKilled는 limits 관련. 조합이 결정하는 개념은 몰랐음.
 
-<br><br><br><br>
+> 채점: ○ — requests/limits 정의와 Pending 인과관계까지 정확. 조합이 결정하는 **QoS 클래스**(Guaranteed/Burstable/BestEffort, 노드 메모리 압박 시 축출 순위)만 놓침 — 이번에 보충 설명함.
 
 <details>
 <summary>▶ 정답 확인</summary>
