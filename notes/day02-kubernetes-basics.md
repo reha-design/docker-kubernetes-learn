@@ -316,7 +316,28 @@ Pod가 재생성될 때마다 설정을 바꿔야 하는 문제가 생긴다.
 - Service는 자기만의 **고정된 IP(ClusterIP)와 고정된 이름**을 가짐 (절대 안 바뀜)
 - **label selector**로 "이 label을 가진 Pod들에게 트래픽을 보내라"고 지정
 - 실제 Pod가 무엇이든 상관없이, 같은 label을 가진 Pod가 새로 생기면 자동으로 연결 대상에 포함
-- 이를 실제로 구현하는 게 `kube-proxy` — Service 생성 시 각 노드에 라우팅 규칙(iptables 등)을 설정
+- 이를 실제로 구현하는 게 `kube-proxy` (바로 아래에서 자세히)
+
+### kube-proxy는 실제로 무엇을 하는가 — "중계자"가 아니라 "규칙 설치자"
+
+이름과 달리 kube-proxy는 트래픽을 **직접 중계하지 않는다.** 각 노드에 하나씩 뜨는 DaemonSet으로,
+API 서버의 Service/EndpointSlice 변화를 감시하다가 **커널 네트워킹 계층에 라우팅 규칙만 심어둔다.**
+ClusterIP로 온 패킷을 실제 Pod IP 중 하나로 바꿔치기(DNAT)하는 실제 처리는 **커널이** 한다.
+
+**동작 모드** — 규칙을 어디에 심느냐의 차이:
+
+| 모드 | 방식 | 특징 |
+|---|---|---|
+| userspace | kube-proxy 프로세스가 직접 중계 | 커널↔유저공간 왕복으로 느림. 사실상 폐기된 레거시 |
+| **iptables** | 넷필터에 규칙 설치, 처리는 커널 | 현재도 **기본값**. Service가 많으면 규칙이 선형으로 늘어남(O(n)) |
+| IPVS | 커널 내장 로드밸런서(해시 테이블) | Service 수천 개여도 성능 저하 적음(O(1)) |
+| nftables | iptables 후속. 커널 5.13+ 필요 | **v1.33(2025-02)에서 GA**. 성능은 개선됐지만 호환성 때문에 기본값은 여전히 iptables |
+
+**중요 — "Ready 파드로만 보낸다"의 진짜 주체**: kube-proxy는 readiness를 직접 판단하지 않는다.
+Ready 여부로 파드를 거르는 건 **EndpointSlice 컨트롤러**다 — Service의 label selector와 맞는 파드
+중 Ready인 것만 EndpointSlice 목록에 올린다([Day 7 §4](day07-docker-k8s-bridge.md) 실습에서
+readiness 실패 파드가 목록에서 빠지는 것을 확인). kube-proxy는 그 목록을 **그대로 믿고** 규칙을
+만들 뿐이다. 즉 **"EndpointSlice가 거르고, kube-proxy가 반영한다."**
 
 ### Service 생성 및 확인
 ```powershell

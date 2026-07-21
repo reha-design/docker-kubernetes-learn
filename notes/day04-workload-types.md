@@ -152,13 +152,23 @@ Deployment는 Pod들이 서로 완전히 동일하고 대체 가능(interchangea
 DB 클러스터처럼 "각 인스턴스가 고유한 정체성과 자기 전용 데이터"를 가져야 하는 경우엔
 StatefulSet을 쓴다.
 
-**Deployment와 핵심 차이:**
-- **안정적인 Pod 이름**: `<이름>-0`, `<이름>-1`, `<이름>-2`처럼 순번이 붙고, 재시작해도 이름이
-  바뀌지 않음 (Deployment는 매번 랜덤 해시가 붙은 새 이름).
-- **각 Pod 전용 PVC**: `volumeClaimTemplates`로 Pod마다 별도의 PVC가 자동 생성됨.
-- **순차적 생성/삭제**: Pod-0이 Running+Ready가 된 후에야 Pod-1 생성 (스케일다운도 역순).
-- **안정적인 네트워크 식별자**: Headless Service와 함께 쓰면
-  `<pod이름>.<서비스이름>.<네임스페이스>.svc.cluster.local`로 각 Pod에 고정 DNS가 부여됨.
+위 그림은 "이름 고정 + PVC 연결"이라는 **결과**만 보여준다. 그 뒤에는 두 가지 보장이 각각
+세부 메커니즘을 깔고 있다.
+
+**보장 ① 안정적인 정체성 — "나는 몇 번 인스턴스인가"가 고정된다**
+- **이름**: `<이름>-0`, `-1`, `-2`처럼 순번이 붙고 재시작해도 안 바뀜 (Deployment는 매번 랜덤 해시).
+- **순서**: Pod-0이 **Running+Ready가 된 후에야** Pod-1 생성, 스케일다운은 **역순**(큰 번호부터).
+  "0번이 먼저 리더가 되고 나머지가 합류"하는 클러스터형 미들웨어의 가정에 맞춘 것.
+- **네트워크(개별 DNS)**: Headless Service(`clusterIP: None`)와 짝을 이뤄야 성립한다. 그러면 각
+  Pod가 `<pod이름>.<서비스이름>.<네임스페이스>.svc.cluster.local` 전용 DNS를 받는다. 일반
+  Service의 "하나의 ClusterIP로 로드밸런싱(아무나 하나 골라줘)"과 **정반대로, 특정 인스턴스를
+  이름으로 콕 집어** 접속하기 위한 것 (예: 쓰기는 반드시 프라이머리 `mysql-0`으로).
+
+**보장 ② 전용 스토리지 — 각 Pod가 자기 데이터를 잃지 않는다**
+- `volumeClaimTemplates`로 Pod마다 `<템플릿이름>-<pod이름>`(예: `www-web-0`) PVC가 자동 생성됨.
+- 볼륨은 노드가 아니라 **Pod의 순번 정체성**에 묶인다. `web-0`이 죽었다가 **다른 노드에 떠도**
+  똑같이 `web-0`으로 붙고 **같은 PVC에 재연결**된다 (Deployment 파드는 이름이 랜덤이라 이런
+  "내 데이터로 돌아오기" 자체가 불가능).
 
 ### 왜 이렇게 설계됐는가
 
@@ -265,6 +275,13 @@ Deployment에서 Pod들이 볼륨을 공유하는 것과 달리, StatefulSet의 
 **정리 시 주의**: StatefulSet을 삭제해도 이 PVC들은 **의도적으로 남는다** — 실수로 StatefulSet을
 지웠다 다시 만들어도 데이터가 유지되도록 한 안전장치. 완전히 정리하려면
 `kubectl delete pvc www-web-0 www-web-1 www-web-2`처럼 명시적으로 삭제해야 한다.
+
+> **자동 삭제를 정책으로 켤 수도 있다**: `spec.persistentVolumeClaimRetentionPolicy`의
+> `whenDeleted`/`whenScaled`를 `Delete`로 지정하면 각각 StatefulSet 삭제 시/스케일다운 시 PVC도
+> 함께 삭제된다 (둘 다 기본값은 `Retain` — 위의 보수적 동작). 이 필드는 Kubernetes
+> **v1.32(2024-12)에서 GA**됐다(1.23 alpha → 1.27 beta → 1.32 stable). 현재 실습
+> 클러스터(v1.35.1)에서도 사용 가능. 함부로 `Delete`로 두면 스케일다운만 해도 데이터가
+> 날아가므로, 정말 휘발성이어도 되는 워크로드에만 쓴다.
 
 **트러블슈팅**: 짧은 이름(`web-0.nginx-headless`)으로 `nslookup`을 시도했을 때는
 `NXDOMAIN`이 떴다. 이는 클러스터 DNS 문제가 아니라 busybox의 musl libc 기반 `nslookup`이
