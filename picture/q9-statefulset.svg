@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300">
+  <rect width="600" height="300" fill="#ffffff"/>
+  
+  <rect x="100" y="50" width="150" height="60" fill="#e3f2fd" stroke="#2196f3" rx="5"/>
+  <text x="175" y="75" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle">mysql-0 (주 노드)</text>
+  <text x="175" y="95" font-family="sans-serif" font-size="12" text-anchor="middle">고정된 식별자</text>
+
+  <rect x="350" y="50" width="150" height="60" fill="#e3f2fd" stroke="#2196f3" rx="5"/>
+  <text x="425" y="75" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle">mysql-1 (복제 노드)</text>
+  <text x="425" y="95" font-family="sans-serif" font-size="12" text-anchor="middle">고정된 식별자</text>
+  
+  <path d="M 175 110 L 175 170" stroke="#333" stroke-width="2" stroke-dasharray="4"/>
+  <path d="M 425 110 L 425 170" stroke="#333" stroke-width="2" stroke-dasharray="4"/>
+  
+  <rect x="120" y="170" width="110" height="50" fill="#fff9c4" stroke="#fbc02d" rx="5"/>
+  <text x="175" y="195" font-family="sans-serif" font-size="12" text-anchor="middle">PVC (mysql-0)</text>
+  
+  <rect x="370" y="170" width="110" height="50" fill="#fff9c4" stroke="#fbc02d" rx="5"/>
+  <text x="425" y="195" font-family="sans-serif" font-size="12" text-anchor="middle">PVC (mysql-1)</text>
+  
+  <text x="300" y="260" font-family="sans-serif" font-size="12" fill="#1565c0" text-anchor="middle">Pod가 재시작해도 mysql-0은 항상 PVC(mysql-0)에 연결된다</text>
+</svg>

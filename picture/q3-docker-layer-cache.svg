@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300">
+  <rect width="600" height="300" fill="#ffffff"/>
+  <text x="150" y="30" font-family="sans-serif" font-size="16" font-weight="bold" fill="#d32f2f" text-anchor="middle">나쁜 예 (캐시 미스)</text>
+  <text x="450" y="30" font-family="sans-serif" font-size="16" font-weight="bold" fill="#388e3c" text-anchor="middle">좋은 예 (캐시 히트)</text>
+
+  <rect x="50" y="60" width="200" height="40" fill="#ffebee" stroke="#f44336"/><text x="150" y="80" font-family="sans-serif" font-size="12" text-anchor="middle" dominant-baseline="middle">COPY . . (코드 변경!)</text>
+  <rect x="50" y="120" width="200" height="40" fill="#ffebee" stroke="#f44336"/><text x="150" y="140" font-family="sans-serif" font-size="12" text-anchor="middle" dominant-baseline="middle">RUN npm install (재실행!)</text>
+  <text x="150" y="190" font-family="sans-serif" font-size="12" fill="#d32f2f" text-anchor="middle">연쇄 무효화 (느림)</text>
+
+  <rect x="350" y="60" width="200" height="40" fill="#e8f5e9" stroke="#4caf50"/><text x="450" y="80" font-family="sans-serif" font-size="12" text-anchor="middle" dominant-baseline="middle">COPY package.json</text>
+  <rect x="350" y="120" width="200" height="40" fill="#e8f5e9" stroke="#4caf50"/><text x="450" y="140" font-family="sans-serif" font-size="12" text-anchor="middle" dominant-baseline="middle">RUN npm install (캐시됨!)</text>
+  <rect x="350" y="180" width="200" height="40" fill="#ffebee" stroke="#f44336"/><text x="450" y="200" font-family="sans-serif" font-size="12" text-anchor="middle" dominant-baseline="middle">COPY . . (코드 변경!)</text>
+  <text x="450" y="240" font-family="sans-serif" font-size="12" fill="#388e3c" text-anchor="middle">의존성 재설치 생략</text>
+</svg>

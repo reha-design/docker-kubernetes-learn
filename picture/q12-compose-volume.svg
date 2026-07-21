@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300">
+  <rect width="600" height="300" fill="#ffffff"/>
+  <text x="150" y="30" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle">익명 볼륨 (사라짐)</text>
+  <text x="450" y="30" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle">이름 있는 볼륨 (유지됨)</text>
+
+  <rect x="50" y="60" width="80" height="40" fill="#e0e0e0"/><text x="90" y="85" font-family="sans-serif" font-size="12" text-anchor="middle">DB (1차 실행)</text>
+  <path d="M 130 80 L 170 80" stroke="#333"/>
+  <circle cx="200" cy="80" r="25" fill="#ffcc80"/><text x="200" y="85" font-family="sans-serif" font-size="10" text-anchor="middle">vol_X</text>
+
+  <text x="90" y="130" font-family="sans-serif" font-size="12" fill="#d32f2f" text-anchor="middle">compose down</text>
+
+  <rect x="50" y="160" width="80" height="40" fill="#e0e0e0"/><text x="90" y="185" font-family="sans-serif" font-size="12" text-anchor="middle">DB (2차 실행)</text>
+  <path d="M 130 180 L 170 180" stroke="#333"/>
+  <circle cx="200" cy="180" r="25" fill="#ffcc80"/><text x="200" y="185" font-family="sans-serif" font-size="10" text-anchor="middle">vol_Y</text>
+  <text x="200" y="225" font-family="sans-serif" font-size="12" fill="#d32f2f" text-anchor="middle">(데이터 초기화!)</text>
+
+  <rect x="350" y="60" width="80" height="40" fill="#e0e0e0"/><text x="390" y="85" font-family="sans-serif" font-size="12" text-anchor="middle">DB (1차 실행)</text>
+  <path d="M 430 80 L 490 110" stroke="#333"/>
+  <circle cx="510" cy="120" r="30" fill="#81c784"/><text x="510" y="125" font-family="sans-serif" font-size="12" text-anchor="middle">dbdata</text>
+
+  <text x="390" y="130" font-family="sans-serif" font-size="12" fill="#d32f2f" text-anchor="middle">compose down</text>
+
+  <rect x="350" y="160" width="80" height="40" fill="#e0e0e0"/><text x="390" y="185" font-family="sans-serif" font-size="12" text-anchor="middle">DB (2차 실행)</text>
+  <path d="M 430 180 L 490 130" stroke="#333"/>
+
+  <text x="510" y="170" font-family="sans-serif" font-size="12" fill="#388e3c" text-anchor="middle">(데이터 유지됨!)</text>
+</svg>
