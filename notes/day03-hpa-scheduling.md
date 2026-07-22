@@ -142,7 +142,27 @@ CPU와 메모리를 다르게 다루는 이유는 성격이 다르기 때문이�
 가능한 이유가 바로 이 CPU 시분할 구조 때문이다 — 코어를 잘라서 나눠준 게 아니라, 같은
 코어를 cgroup 가중치대로 번갈아 쓰는 것.
 
-### 직접 확인한 실습
+### 직접 확인한 실습 — cgroup 파일로 실측
+
+Day 7에서 만든 `qos-burstable` 파드(cpu 100m/200m, memory 64Mi/128Mi)를 재활용해,
+requests/limits가 실제 cgroup 값으로 들어가는지 직접 열어봤다. 재현 절차는
+[lab-cgroup-verification.md](lab-cgroup-verification.md) 참고.
+
+```powershell
+kubectl exec qos-burstable -- cat /sys/fs/cgroup/cpu.max
+20000 100000
+
+kubectl exec qos-burstable -- cat /sys/fs/cgroup/memory.max
+134217728
+```
+
+- `cpu.max` = `20000 100000` → 20000÷100000 = 0.2코어 = **200m**, limits.cpu와 정확히 일치.
+- `memory.max` = `134217728` = 128×1024×1024 바이트 = **128Mi**, limits.memory와 정확히 일치.
+- 클러스터는 cgroup v2 (`stat -fc %T /sys/fs/cgroup` → `cgroup2fs`).
+
+추상적으로 설명했던 "requests/limits → cgroup 파일" 매핑이 실측으로 확인된 것.
+
+### 직접 확인한 실습 — 노드 자원 장부
 
 ```powershell
 kubectl describe node minikube
