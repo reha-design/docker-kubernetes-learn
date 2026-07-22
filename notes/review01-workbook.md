@@ -18,10 +18,12 @@
 | 4 | ConfigMap vs Secret | ○ | | |
 | 5 | Service DNS 동작 원리 | ○ | | |
 | 6 | requests vs limits | ○ | | |
-| 7 | HPA max 도달 이후 | | | |
-| 8 | StatefulSet | | | |
-| 9 | readiness vs liveness (이월) | | | |
-| 10 | 무중단 배포의 두 설정 (이월) | | | |
+| 7 | HPA max 도달 이후 | 재학습 | | |
+| 8 | StatefulSet | 재학습 | | |
+| 9 | readiness vs liveness (이월) | 재학습 | | |
+| 10 | 무중단 배포의 두 설정 (이월) | 재학습 | | |
+
+> `재학습` = 회상 시도 없이 개념부터 다시 익힌 항목 (1회차에 아무것도 기억나지 않아 인출을 건너뜀). 다음 회차에서 인출 재도전.
 
 ---
 
@@ -163,9 +165,14 @@
 
 (구조도: [notes/day03-hpa-scheduling.md](day03-hpa-scheduling.md#1-hpa의-max상한선-테스트--왜-max까지-안-늘어나는가) 1번 섹션 참고 — 정답 확인 전에는 보지 말 것)
 
-**내 답변 (1회차):**
+**내 답변 (1회차):** (회상 실패 — 개념부터 재학습. 아래는 이번에 다시 익힌 요약. 다음 회차에서 인출 재도전.)
 
-<br><br><br><br>
+**재학습 요약:**
+- **HPA가 보는 값**: metrics-server가 수집한 실제 CPU 사용량을 **requests로 나눈 %**. "사용량 ÷ requests"가 핵심 — 절대량이 아니라 예약량 대비 비율.
+- **공식**: `desiredReplicas = ceil( currentReplicas × (현재 사용률 / 목표 사용률) )`. 목표 50%인데 지금 80%면 비율만큼 replica를 늘려 평균을 목표로 끌어내림.
+- **requests가 없으면**: 분모가 없어 % 계산 자체가 불가 → **HPA가 동작하지 못함**. 그래서 HPA 대상 워크로드엔 requests가 필수 전제.
+- **max 도달 후에도 부하가 오르면**: min/max 밖으로 안 나가므로 **max에서 멈춤**. 초과분은 기존 파드가 나눠 받아 응답 지연/실패. 이건 장애가 아니라 "무한 증식 방지" 설계.
+- **대응책**: max 상향 / 노드가 부족하면 Cluster Autoscaler로 노드 증설 / 앞단에서 rate limiting.
 
 <details>
 <summary>▶ 정답 확인</summary>
@@ -184,17 +191,29 @@
 
 (구조도: [notes/day04-workload-types.md](day04-workload-types.md#2-statefulset) 2번 섹션 참고 — 정답 확인 전에는 보지 말 것)
 
-**내 답변 (1회차):**
+**내 답변 (1회차):** (회상 실패 — 개념부터 재학습. "보장하는 두 가지가 저게 전부냐"고 되물어 그림 뒤의 메커니즘까지 깊게 다룸. 다음 회차에서 인출 재도전.)
 
-<br><br><br><br>
+**재학습 요약:**
+- **언제 쓰나**: 파드들이 서로 **구별되어야 하는** stateful 워크로드 — DB(primary/replica), Kafka(`broker.id`), Zookeeper 쿼럼 같은 클러스터형 미들웨어.
+- **보장 ① 안정적 정체성** — "나는 몇 번인가"가 고정:
+  - **이름 고정**: `db-0, db-1...` 재시작해도 안 바뀜 (Deployment는 매번 랜덤 해시).
+  - **순서**: Pod-0이 Ready된 뒤에야 Pod-1 생성, 스케일다운은 **역순**(큰 번호부터). "0번이 먼저 리더, 나머지 합류" 가정에 맞춤.
+  - **개별 DNS**: Headless Service(`clusterIP: None`)와 짝을 이뤄 파드별 전용 DNS 부여. 일반 Service의 "아무나 하나 골라줘(로드밸런싱)"와 반대로 **특정 인스턴스를 이름으로 콕 집기**(쓰기는 반드시 `db-0`으로).
+- **보장 ② 전용 스토리지** — 각 파드가 자기 데이터를 잃지 않음:
+  - `volumeClaimTemplates`로 파드마다 `<템플릿>-<파드>`(예: `data-db-0`) PVC 자동 생성.
+  - 볼륨은 노드가 아니라 **파드 순번 정체성**에 묶임 → `db-0`이 죽어 **다른 노드에 떠도** 같은 PVC에 재연결.
+  - PVC는 StatefulSet 삭제/스케일다운해도 **안 지워짐**(데이터 보호 안전장치). 자동 삭제하려면 `persistentVolumeClaimRetentionPolicy`(**v1.32 GA**).
+- **Deployment로 안 되는 이유**: 파드가 전부 동일 복제품(이름 랜덤·스토리지 공유/없음)이라 "1번/2번" 정체성 자체가 없음.
+- 상세 메커니즘·실습 출력: [day04 §2](day04-workload-types.md#2-statefulset).
 
 <details>
 <summary>▶ 정답 확인</summary>
 
 - **언제**: 파드들이 서로 **구별되어야 하는** 상태ful 워크로드 — DB(primary/replica 구분), Kafka/Zookeeper 같은 클러스터형 미들웨어.
-- **보장 ①**: 고정된 이름과 순서 — `mysql-0, mysql-1, ...` 번호가 붙고 재시작해도 같은 이름, 생성/삭제도 순서대로.
-- **보장 ②**: 파드별 전용 스토리지 — volumeClaimTemplates로 파드마다 자기 PVC가 붙고, 재시작해도 자기 데이터를 되찾는다 (Day 4 실습에서 검증).
+- **보장 ① 안정적 정체성**: 고정된 이름(`db-0, db-1...` 재시작해도 유지) + **순차 생성·역순 삭제** + Headless Service로 파드별 개별 DNS(로드밸런싱이 아니라 특정 인스턴스 지목).
+- **보장 ② 전용 스토리지**: volumeClaimTemplates로 파드마다 자기 PVC(`data-db-0...`). 볼륨은 노드가 아닌 **파드 순번 정체성**에 묶여, 다른 노드에 재배치돼도 같은 PVC에 재연결. PVC는 삭제해도 남는 게 기본(안전장치), 자동 삭제는 `persistentVolumeClaimRetentionPolicy`(v1.32 GA)로 opt-in.
 - Deployment가 안 되는 이유: 파드가 전부 동일한 복제품(이름 랜덤, 스토리지 공유/없음)이라 "내가 1번, 쟤가 2번" 개념이 없다.
+- 상세: [day04 §2](day04-workload-types.md#2-statefulset).
 
 </details>
 
@@ -206,9 +225,13 @@
 
 (구조도: [notes/day07-docker-k8s-bridge.md](day07-docker-k8s-bridge.md#4-liveness--readiness--startup-probe--running과-ready는-다르다) 4번 섹션 참고 — 정답 확인 전에는 보지 말 것)
 
-**내 답변 (1회차):**
+**내 답변 (1회차):** (회상 실패 — 개념부터 재학습. 아래는 이번에 다시 익힌 요약. 다음 회차에서 인출 재도전.)
 
-<br><br><br><br>
+**재학습 요약:**
+- **readiness 실패** → **트래픽만 끊김**. EndpointSlice에서 빠져 Service가 요청을 안 보냄. **재시작 없음**. 실습: `/healthz` 404가 **126회 쌓이는 동안 RESTARTS 0**.
+- **liveness 실패** → **컨테이너 재시작**. 파드 재생성이 아니라 컨테이너만 다시 뜸(IP·이름 유지, **RESTARTS +1**). 실습: 403 × 3회(`failureThreshold`) → Killing → 재시작.
+- **왜 분리했나**: 처방이 정반대라서. 데드락은 재시작이 답이지만, "DB가 잠깐 느려 준비 안 됨"을 재시작으로 처방하면 멀쩡한 파드를 계속 죽이는 **재시작 폭풍**이 됨.
+- **startupProbe**: 기동이 느린 앱의 기동 구간만 따로 보호 — 기동 여유는 길게, 운영 중 감지는 빠르게.
 
 <details>
 <summary>▶ 정답 확인</summary>
@@ -228,9 +251,13 @@
 
 (구조도: [notes/day07-docker-k8s-bridge.md](day07-docker-k8s-bridge.md#5-배포-전략--rolling-update-파라미터-롤백-blue-greencanary) 5번 섹션 참고 — 정답 확인 전에는 보지 말 것)
 
-**내 답변 (1회차):**
+**내 답변 (1회차):** (회상 실패 — 개념부터 재학습. 아래는 이번에 다시 익힌 요약. 다음 회차에서 인출 재도전.)
 
-<br><br><br><br>
+**재학습 요약:**
+- **① `maxUnavailable: 0`** — "교체 중이라도 원하는 개수에서 하나도 모자라면 안 된다"는 규칙. 새 파드가 합격하기 전엔 옛 파드를 **안 죽임**(대신 `maxSurge`로 여유분만 추가로 띄워 교체). → **옛것을 지키는 쪽**.
+- **② readiness probe** — 새 파드의 **합격 기준**. 새 파드가 Ready가 안 되면 롤아웃이 **그 자리에서 멈추고** 옛 파드가 계속 트래픽을 받음. → **새것을 검증하는 쪽**.
+- **둘의 관계**: 이 조합 덕에 새 버전이 `ImagePullBackOff`로 아예 안 떠도 **14분간 무중단**이었음. readiness가 없으면 "컨테이너 떴다=준비됨"으로 오해해 고장난 버전으로 전부 교체됨.
+- **복구**: `kubectl rollout undo` — 0개로 보관돼 있던 옛 ReplicaSet 템플릿으로 **새 리비전**을 만드는 것(시간여행이 아님).
 
 <details>
 <summary>▶ 정답 확인</summary>
