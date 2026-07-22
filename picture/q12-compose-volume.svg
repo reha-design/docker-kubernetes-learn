@@ -1,27 +1,57 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300">
-  <rect width="600" height="300" fill="#ffffff"/>
-  <text x="150" y="30" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle">익명 볼륨 (사라짐)</text>
-  <text x="450" y="30" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle">이름 있는 볼륨 (유지됨)</text>
+<svg width="680" height="310" viewBox="0 0 680 310" xmlns="http://www.w3.org/2000/svg" role="img" font-family="'Malgun Gothic', 'Apple SD Gothic Neo', Arial, sans-serif">
+  <title>Docker Compose 익명 볼륨과 Named Volume 데이터 영속성 비교</title>
+  <desc>익명 볼륨은 compose down 후 재시작 시 새 익명 볼륨이 붙어 데이터가 증발하지만, Named Volume은 이름을 지정하여 데이터를 영속적으로 되찾습니다.</desc>
+  <rect x="0" y="0" width="680" height="310" fill="#FFFFFF"/>
 
-  <rect x="50" y="60" width="80" height="40" fill="#e0e0e0"/><text x="90" y="85" font-family="sans-serif" font-size="12" text-anchor="middle">DB (1차 실행)</text>
-  <path d="M 130 80 L 170 80" stroke="#333"/>
-  <circle cx="200" cy="80" r="25" fill="#ffcc80"/><text x="200" y="85" font-family="sans-serif" font-size="10" text-anchor="middle">vol_X</text>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#5F5E5A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
 
-  <text x="90" y="130" font-family="sans-serif" font-size="12" fill="#d32f2f" text-anchor="middle">compose down</text>
+  <!-- Left: Anonymous Volume -->
+  <rect x="40" y="30" width="285" height="255" rx="16" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="182" y="55" text-anchor="middle" font-size="13" font-weight="500" fill="#712B13">익명 볼륨 (Anonymous Volume)</text>
 
-  <rect x="50" y="160" width="80" height="40" fill="#e0e0e0"/><text x="90" y="185" font-family="sans-serif" font-size="12" text-anchor="middle">DB (2차 실행)</text>
-  <path d="M 130 180 L 170 180" stroke="#333"/>
-  <circle cx="200" cy="180" r="25" fill="#ffcc80"/><text x="200" y="185" font-family="sans-serif" font-size="10" text-anchor="middle">vol_Y</text>
-  <text x="200" y="225" font-family="sans-serif" font-size="12" fill="#d32f2f" text-anchor="middle">(데이터 초기화!)</text>
+  <rect x="60" y="75" width="120" height="38" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="120" y="99" text-anchor="middle" font-size="12" font-weight="500" fill="#444441">DB (1차 up)</text>
 
-  <rect x="350" y="60" width="80" height="40" fill="#e0e0e0"/><text x="390" y="85" font-family="sans-serif" font-size="12" text-anchor="middle">DB (1차 실행)</text>
-  <path d="M 430 80 L 490 110" stroke="#333"/>
-  <circle cx="510" cy="120" r="30" fill="#81c784"/><text x="510" y="125" font-family="sans-serif" font-size="12" text-anchor="middle">dbdata</text>
+  <line x1="180" y1="94" x2="205" y2="94" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-  <text x="390" y="130" font-family="sans-serif" font-size="12" fill="#d32f2f" text-anchor="middle">compose down</text>
+  <rect x="205" y="75" width="100" height="38" rx="8" fill="#FAECE7" stroke="#993C1D" stroke-width="1"/>
+  <text x="255" y="99" text-anchor="middle" font-size="11" fill="#712B13">vol_a1b2</text>
 
-  <rect x="350" y="160" width="80" height="40" fill="#e0e0e0"/><text x="390" y="185" font-family="sans-serif" font-size="12" text-anchor="middle">DB (2차 실행)</text>
-  <path d="M 430 180 L 490 130" stroke="#333"/>
+  <text x="182" y="134" text-anchor="middle" font-size="11" fill="#993C1D">compose down 실행 (컨테이너/볼륨 해제)</text>
 
-  <text x="510" y="170" font-family="sans-serif" font-size="12" fill="#388e3c" text-anchor="middle">(데이터 유지됨!)</text>
+  <rect x="60" y="150" width="120" height="38" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="120" y="174" text-anchor="middle" font-size="12" font-weight="500" fill="#444441">DB (2차 up)</text>
+
+  <line x1="180" y1="169" x2="205" y2="169" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <rect x="205" y="150" width="100" height="38" rx="8" fill="#FAECE7" stroke="#993C1D" stroke-width="1"/>
+  <text x="255" y="174" text-anchor="middle" font-size="11" fill="#712B13">vol_c3d4 (새 볼륨)</text>
+
+  <rect x="60" y="210" width="245" height="45" rx="8" fill="#FAECE7" stroke="#993C1D" stroke-width="1"/>
+  <text x="182" y="237" text-anchor="middle" font-size="12" font-weight="500" fill="#712B13">옛 데이터 상실 (데이터 초기화)</text>
+
+  <!-- Right: Named Volume -->
+  <rect x="355" y="30" width="285" height="255" rx="16" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="497" y="55" text-anchor="middle" font-size="13" font-weight="500" fill="#085041">이름 있는 볼륨 (Named Volume)</text>
+
+  <rect x="375" y="75" width="120" height="38" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="435" y="99" text-anchor="middle" font-size="12" font-weight="500" fill="#444441">DB (1차 up)</text>
+
+  <line x1="495" y1="94" x2="520" y2="110" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <rect x="520" y="100" width="100" height="54" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1"/>
+  <text x="570" y="123" text-anchor="middle" font-size="12" font-weight="500" fill="#085041">dbdata</text>
+  <text x="570" y="141" text-anchor="middle" font-size="10" fill="#0F6E56">(Named Vol)</text>
+
+  <rect x="375" y="150" width="120" height="38" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="435" y="174" text-anchor="middle" font-size="12" font-weight="500" fill="#444441">DB (2차 up)</text>
+
+  <line x1="495" y1="169" x2="520" y2="145" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <rect x="375" y="210" width="245" height="45" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1"/>
+  <text x="497" y="237" text-anchor="middle" font-size="12" font-weight="500" fill="#085041">동일한 dbdata 볼륨 재연결 (데이터 유지)</text>
 </svg>

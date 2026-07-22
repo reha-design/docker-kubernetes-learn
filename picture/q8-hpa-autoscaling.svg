@@ -1,29 +1,46 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300">
-  <rect width="600" height="300" fill="#ffffff"/>
-  <rect x="50" y="120" width="100" height="50" fill="#f3e5f5" stroke="#9c27b0" rx="5"/>
-  <text x="100" y="150" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle">metrics-server</text>
-  
-  <rect x="250" y="120" width="100" height="50" fill="#fff3e0" stroke="#ff9800" rx="5"/>
-  <text x="300" y="150" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle">HPA</text>
-  
-  <rect x="450" y="80" width="100" height="130" fill="#e8f5e9" stroke="#4caf50" rx="5"/>
-  <text x="500" y="105" font-family="sans-serif" font-size="14" font-weight="bold" text-anchor="middle">Deployment</text>
-  
-  <path d="M 150 145 L 240 145" stroke="#9c27b0" stroke-width="2" marker-end="url(#arrow)"/>
-  <path d="M 350 145 L 440 145" stroke="#ff9800" stroke-width="2" marker-end="url(#arrow)"/>
-  
-  <text x="200" y="135" font-family="sans-serif" font-size="12" fill="#555" text-anchor="middle">CPU > 80%</text>
-  <text x="400" y="135" font-family="sans-serif" font-size="12" fill="#555" text-anchor="middle">증설</text>
-  
-  <rect x="470" y="120" width="60" height="20" fill="#c8e6c9" stroke="#4caf50"/><text x="500" y="135" font-family="sans-serif" font-size="10" text-anchor="middle">Pod 1</text>
-  <rect x="470" y="150" width="60" height="20" fill="#c8e6c9" stroke="#4caf50"/><text x="500" y="165" font-family="sans-serif" font-size="10" text-anchor="middle">Pod 2</text>
-  <rect x="470" y="180" width="60" height="20" fill="#c8e6c9" stroke="#4caf50"/><text x="500" y="195" font-family="sans-serif" font-size="10" text-anchor="middle">Pod 3</text>
-  
-  <text x="300" y="200" font-family="sans-serif" font-size="12" fill="#d32f2f" text-anchor="middle">MAX replicas 도달 시 멈춤</text>
-  
+<svg width="680" height="290" viewBox="0 0 680 290" xmlns="http://www.w3.org/2000/svg" role="img" font-family="'Malgun Gothic', 'Apple SD Gothic Neo', Arial, sans-serif">
+  <title>HPA 오토스케일링 동작 구조</title>
+  <desc>metrics-server가 수집한 CPU/메모리 지표를 보고 HPA가 Deployment의 파드 개수를 증설하지만, MAX 초과 시에는 추가 증설 없이 멈춥니다.</desc>
+  <rect x="0" y="0" width="680" height="290" fill="#FFFFFF"/>
+
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#333"/>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#5F5E5A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
     </marker>
   </defs>
+
+  <!-- metrics-server -->
+  <rect x="40" y="90" width="150" height="54" rx="10" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1"/>
+  <text x="115" y="113" text-anchor="middle" font-size="13" font-weight="500" fill="#085041">metrics-server</text>
+  <text x="115" y="132" text-anchor="middle" font-size="11" fill="#0F6E56">자원 지표 수집</text>
+
+  <!-- HPA -->
+  <rect x="245" y="90" width="140" height="54" rx="10" fill="#FAEEDA" stroke="#854F0B" stroke-width="1"/>
+  <text x="315" y="113" text-anchor="middle" font-size="13" font-weight="500" fill="#633806">HPA</text>
+  <text x="315" y="132" text-anchor="middle" font-size="11" fill="#854F0B">목표 % 비교/제어</text>
+
+  <!-- Deployment Container -->
+  <rect x="440" y="45" width="200" height="210" rx="16" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="460" y="70" font-size="13" font-weight="500" fill="#444441">Deployment (파드 수 조정)</text>
+
+  <!-- Pods -->
+  <rect x="460" y="85" width="160" height="38" rx="8" fill="#FAECE7" stroke="#993C1D" stroke-width="1"/>
+  <text x="540" y="109" text-anchor="middle" font-size="12" font-weight="500" fill="#712B13">Pod 1</text>
+
+  <rect x="460" y="130" width="160" height="38" rx="8" fill="#FAECE7" stroke="#993C1D" stroke-width="1"/>
+  <text x="540" y="154" text-anchor="middle" font-size="12" font-weight="500" fill="#712B13">Pod 2</text>
+
+  <rect x="460" y="175" width="160" height="38" rx="8" fill="#FAECE7" stroke="#993C1D" stroke-width="1"/>
+  <text x="540" y="199" text-anchor="middle" font-size="12" font-weight="500" fill="#712B13">Pod 3 (Max 한계)</text>
+
+  <!-- Arrow Lines -->
+  <line x1="190" y1="117" x2="245" y2="117" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="217" y="110" text-anchor="middle" font-size="10" fill="#5F5E5A">지표 전달</text>
+
+  <line x1="385" y1="117" x2="440" y2="117" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="412" y="110" text-anchor="middle" font-size="10" fill="#5F5E5A">Scale Up</text>
+
+  <!-- Bottom Warning -->
+  <rect x="40" y="220" width="345" height="35" rx="8" fill="#FAEEDA" stroke="#854F0B" stroke-width="1"/>
+  <text x="212" y="242" text-anchor="middle" font-size="11" font-weight="500" fill="#633806">Max replicas 도달 시 추가 스케일아웃 중단 (대기)</text>
 </svg>

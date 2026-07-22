@@ -1,14 +1,34 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300">
-  <rect width="600" height="300" fill="#ffffff"/>
-  <text x="150" y="30" font-family="sans-serif" font-size="16" font-weight="bold" fill="#d32f2f" text-anchor="middle">나쁜 예 (캐시 미스)</text>
-  <text x="450" y="30" font-family="sans-serif" font-size="16" font-weight="bold" fill="#388e3c" text-anchor="middle">좋은 예 (캐시 히트)</text>
+<svg width="680" height="310" viewBox="0 0 680 310" xmlns="http://www.w3.org/2000/svg" role="img" font-family="'Malgun Gothic', 'Apple SD Gothic Neo', Arial, sans-serif">
+  <title>도커 레이어 캐시 활용 비교</title>
+  <desc>자주 변경되는 소스코드를 앞쪽에 두면 뒤쪽의 의존성 설치 레이어까지 연쇄 무효화되지만, package.json을 먼저 복사하면 캐시를 적중시켜 빌드 속도가 빨라집니다.</desc>
+  <rect x="0" y="0" width="680" height="310" fill="#FFFFFF"/>
 
-  <rect x="50" y="60" width="200" height="40" fill="#ffebee" stroke="#f44336"/><text x="150" y="80" font-family="sans-serif" font-size="12" text-anchor="middle" dominant-baseline="middle">COPY . . (코드 변경!)</text>
-  <rect x="50" y="120" width="200" height="40" fill="#ffebee" stroke="#f44336"/><text x="150" y="140" font-family="sans-serif" font-size="12" text-anchor="middle" dominant-baseline="middle">RUN npm install (재실행!)</text>
-  <text x="150" y="190" font-family="sans-serif" font-size="12" fill="#d32f2f" text-anchor="middle">연쇄 무효화 (느림)</text>
+  <!-- Left: Bad Example -->
+  <rect x="40" y="30" width="285" height="255" rx="16" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="182" y="58" text-anchor="middle" font-size="14" font-weight="500" fill="#712B13">나쁜 예 (캐시 무효화 발생)</text>
 
-  <rect x="350" y="60" width="200" height="40" fill="#e8f5e9" stroke="#4caf50"/><text x="450" y="80" font-family="sans-serif" font-size="12" text-anchor="middle" dominant-baseline="middle">COPY package.json</text>
-  <rect x="350" y="120" width="200" height="40" fill="#e8f5e9" stroke="#4caf50"/><text x="450" y="140" font-family="sans-serif" font-size="12" text-anchor="middle" dominant-baseline="middle">RUN npm install (캐시됨!)</text>
-  <rect x="350" y="180" width="200" height="40" fill="#ffebee" stroke="#f44336"/><text x="450" y="200" font-family="sans-serif" font-size="12" text-anchor="middle" dominant-baseline="middle">COPY . . (코드 변경!)</text>
-  <text x="450" y="240" font-family="sans-serif" font-size="12" fill="#388e3c" text-anchor="middle">의존성 재설치 생략</text>
+  <rect x="60" y="80" width="245" height="44" rx="8" fill="#FAECE7" stroke="#993C1D" stroke-width="1"/>
+  <text x="182" y="107" text-anchor="middle" font-size="13" font-weight="500" fill="#712B13">COPY . . (코드 변경 - 캐시 미스)</text>
+
+  <rect x="60" y="136" width="245" height="44" rx="8" fill="#FAECE7" stroke="#993C1D" stroke-width="1"/>
+  <text x="182" y="163" text-anchor="middle" font-size="13" font-weight="500" fill="#712B13">RUN npm install (매번 재실행!)</text>
+
+  <rect x="60" y="196" width="245" height="48" rx="8" fill="#FAEEDA" stroke="#854F0B" stroke-width="1"/>
+  <text x="182" y="225" text-anchor="middle" font-size="12" font-weight="500" fill="#633806">비효율적인 연쇄 무효화 (느린 빌드)</text>
+
+  <!-- Right: Good Example -->
+  <rect x="355" y="30" width="285" height="255" rx="16" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="497" y="58" text-anchor="middle" font-size="14" font-weight="500" fill="#085041">좋은 예 (캐시 적중 극대화)</text>
+
+  <rect x="375" y="75" width="245" height="38" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1"/>
+  <text x="497" y="99" text-anchor="middle" font-size="12" font-weight="500" fill="#085041">COPY package*.json . (변화 적음)</text>
+
+  <rect x="375" y="123" width="245" height="38" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1"/>
+  <text x="497" y="147" text-anchor="middle" font-size="12" font-weight="500" fill="#085041">RUN npm install (캐시 사용!)</text>
+
+  <rect x="375" y="171" width="245" height="38" rx="8" fill="#FAECE7" stroke="#993C1D" stroke-width="1"/>
+  <text x="497" y="195" text-anchor="middle" font-size="12" font-weight="500" fill="#712B13">COPY . . (소스코드 변경)</text>
+
+  <rect x="375" y="219" width="245" height="42" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1"/>
+  <text x="497" y="245" text-anchor="middle" font-size="12" font-weight="500" fill="#085041">의존성 설치 생략 (초고속 빌드)</text>
 </svg>

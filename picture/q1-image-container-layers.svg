@@ -1,13 +1,21 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300">
-  <rect width="600" height="300" fill="#ffffff"/>
-  <rect x="50" y="200" width="500" height="40" fill="#e0e0e0" stroke="#9e9e9e"/>
-  <text x="300" y="220" font-family="sans-serif" font-size="14" text-anchor="middle" dominant-baseline="middle">이미지 레이어 1 (베이스 OS) - 읽기 전용</text>
-  <rect x="50" y="150" width="500" height="40" fill="#eeeeee" stroke="#9e9e9e"/>
-  <text x="300" y="170" font-family="sans-serif" font-size="14" text-anchor="middle" dominant-baseline="middle">이미지 레이어 2 (의존성) - 읽기 전용</text>
+<svg width="680" height="280" viewBox="0 0 680 280" xmlns="http://www.w3.org/2000/svg" role="img" font-family="'Malgun Gothic', 'Apple SD Gothic Neo', Arial, sans-serif">
+  <title>이미지와 컨테이너 레이어 구조</title>
+  <desc>이미지의 읽기 전용 레이어는 여러 컨테이너가 공유하고, 각 컨테이너는 얇은 쓰기 가능 레이어만 상단에 각각 가집니다.</desc>
+  <rect x="0" y="0" width="680" height="280" fill="#FFFFFF"/>
 
-  <rect x="50" y="80" width="230" height="50" fill="#e3f2fd" stroke="#1e88e5" stroke-width="2" rx="5"/>
-  <text x="165" y="105" font-family="sans-serif" font-size="14" font-weight="bold" fill="#1565c0" text-anchor="middle" dominant-baseline="middle">컨테이너 1 (쓰기 레이어)</text>
+  <!-- Base Image Layers (Shared Read-Only) -->
+  <rect x="40" y="200" width="600" height="44" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="340" y="227" text-anchor="middle" font-size="13" font-weight="500" fill="#444441">이미지 레이어 1 (베이스 OS / 읽기 전용) — 공동 공유</text>
 
-  <rect x="320" y="80" width="230" height="50" fill="#e8f5e9" stroke="#43a047" stroke-width="2" rx="5"/>
-  <text x="435" y="105" font-family="sans-serif" font-size="14" font-weight="bold" fill="#2e7d32" text-anchor="middle" dominant-baseline="middle">컨테이너 2 (쓰기 레이어)</text>
+  <rect x="40" y="146" width="600" height="44" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="340" y="173" text-anchor="middle" font-size="13" font-weight="500" fill="#444441">이미지 레이어 2 (애플리케이션 의존성 / 읽기 전용) — 공동 공유</text>
+
+  <!-- Container Writable Layers -->
+  <rect x="40" y="70" width="285" height="56" rx="10" fill="#FAECE7" stroke="#993C1D" stroke-width="1"/>
+  <text x="182" y="93" text-anchor="middle" font-size="13" font-weight="500" fill="#712B13">컨테이너 1 (쓰기 가능 레이어)</text>
+  <text x="182" y="112" text-anchor="middle" font-size="11" fill="#993C1D">독립적 변경사항만 저장</text>
+
+  <rect x="355" y="70" width="285" height="56" rx="10" fill="#FAECE7" stroke="#993C1D" stroke-width="1"/>
+  <text x="497" y="93" text-anchor="middle" font-size="13" font-weight="500" fill="#712B13">컨테이너 2 (쓰기 가능 레이어)</text>
+  <text x="497" y="112" text-anchor="middle" font-size="11" fill="#993C1D">독립적 변경사항만 저장</text>
 </svg>
