@@ -474,6 +474,24 @@ QoS(Quality of Service) 클래스는 **노드 메모리가 부족해질 때 누�
 Day 3 내용과 구분: `limits` 초과는 **OOMKilled**(해당 컨테이너 즉살 후 그 자리에서 재시작),
 노드 전체 메모리 압박은 **Eviction**(파드를 노드에서 내보내고 재스케줄) — 다른 메커니즘이다.
 
+### 축출이 실제로 일어나는 방식 — 신호·임계치·선정 순서
+
+**트리거 조건**: kubelet은 `memory.available`, `nodefs.available`(디스크), `pid.available` 같은
+노드 압박 신호를 주기적으로 감시한다. 각 신호에 **hard threshold**(예: `memory.available<100Mi`,
+유예 없이 즉시 축출)와 **soft threshold**(예: `<300Mi`, 설정된 유예 시간 동안 지켜보다가 안
+풀리면 축출)가 있다. 조건에 걸리면 노드에 `MemoryPressure` Condition이 붙고, 그 노드엔 새
+BestEffort/Burstable 파드가 스케줄되지 않도록 taint가 자동으로 붙는다.
+
+**축출 대상 선정 순서** (공식 문서 기준):
+1. **QoS 클래스** — BestEffort → Burstable → Guaranteed 순으로 먼저 검토.
+2. **같은 클래스 내에서는 requests 대비 실제 사용량 초과율**이 큰 쪽 먼저 (예: Burstable 파드가
+   requests의 3배를 쓰고 있으면, 1.1배만 쓰는 다른 Burstable 파드보다 먼저 축출).
+3. **Pod Priority**(`priorityClass`)가 동점 상황의 tie-breaker로 개입.
+
+즉 "선언한 만큼만 정직하게 쓰는 파드"는 해당 자원에서 초과분이 없으니 이 순위 계산에서
+자연히 후순위로 밀린다 — QoS 등급 자체가 보호해주는 게 아니라, **초과 사용량이 없다는 사실**이
+보호해주는 것이다.
+
 ### 왜 이렇게 설계됐는가
 
 "정직하게 자원을 선언한 만큼 보호받는다"는 인센티브 구조다. requests==limits로 정확히
