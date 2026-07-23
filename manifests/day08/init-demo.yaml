@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: init-demo
+spec:
+  initContainers:
+    - name: wait-for-setup
+      image: busybox
+      command: ["sh", "-c", "echo 초기화 작업 중...; sleep 5; echo 초기화 완료"]
+  containers:
+    - name: main-app
+      image: nginx
