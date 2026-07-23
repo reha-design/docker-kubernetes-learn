@@ -23,6 +23,8 @@
 - [복습 문답 1회차 — Day 1~7 전체 점검, 취약 지점 평가와 복습 우선순위](notes/review01-day01-07-quiz.md)
 - [회상형 워크북 1호 — 취약 지점 인출 훈련 (먼저 쓰고, 정답 펼쳐 대조)](notes/review01-workbook.md)
 - [실습 가이드 — cgroup으로 requests/limits 실측 검증 (재현 가능한 절차)](notes/lab-cgroup-verification.md)
+- [개관 노트 — 부하분산 전체 그림 (DNS부터 DB까지)](notes/load-balancing-overview.md)
+- [개관 노트 — 장애격리 전체 그림 (컨테이너부터 컨트롤 플레인까지)](notes/fault-isolation-overview.md)
 
 ## 학습 로드맵 (면접 대비, Day 7~12)
 
