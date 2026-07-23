@@ -757,6 +757,11 @@ PS> docker compose down
 - **`docker network inspect compose-demo_default` → not found**: 고장이 아니라 아직
   `docker compose up`을 안 한 상태였다. Compose 네트워크는 미리 존재하는 게 아니라 `up`
   시점에 생성되고 `down`이면 삭제된다.
+- **`kubectl patch ... -p '{"spec":...}'` → `invalid character 's' looking for beginning
+  of object key string`**: 명령어 오타가 아니라 **Windows PowerShell이 네이티브 실행파일에
+  인용부호 포함 문자열을 넘길 때 따옴표를 깨뜨리는 문제**였다. JSON을 인라인으로 넘기지 말고
+  파일로 저장해서 `kubectl patch ... --patch-file=경로.json`으로 넘기면 확실하게 해결된다 —
+  PowerShell에서 kubectl에 JSON을 줄 땐 인라인보다 파일 방식이 기본값이어야 할 정도.
 
 ---
 
@@ -774,7 +779,11 @@ PS> docker compose down
    구간을 따로 보호.
 5. **배포 전략**: 롤링 업데이트는 maxSurge/maxUnavailable로 속도·안전 조절, 새 파드의 합격
    기준은 readiness probe. 고장난 버전을 배포해도 옛 파드가 무중단으로 버텨줬고,
-   `rollout undo`는 0개로 보관된 옛 ReplicaSet 템플릿으로 새 리비전을 만드는 것.
+   `rollout undo`는 0개로 보관된 옛 ReplicaSet 템플릿으로 새 리비전을 만드는 것. Blue-green은
+   Service selector 전환만으로(파드 재시작 0회) BLUE→GREEN→BLUE가 즉시 전환되는 걸 직접
+   확인했고, canary는 파드 개수 비율(4:1)로 트래픽을 나눠봤더니 실측값이 75:25로 나와
+   이론값(80:20)과 갈렸다 — "파드 개수 비율" 방식은 대략적일 뿐 정밀 제어가 아님을 숫자로
+   확인, 정밀 제어엔 Ingress 가중치나 서비스 메시가 필요한 이유.
 6. **QoS 클래스**: requests/limits 설정에서 자동 판정(Guaranteed/Burstable/BestEffort),
    노드 메모리 압박 시 축출 순위. 자원을 정직하게 선언한 만큼 보호받는다.
 7. **Docker Compose**: 멀티 컨테이너를 선언형 파일 하나로. 서비스 이름 = DNS 이름(내장 DNS,
