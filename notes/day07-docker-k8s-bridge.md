@@ -381,8 +381,30 @@ readiness가 없으면 "떴다 = 준비됐다"로 간주되어 고장난 버전�
   Service/Ingress/서비스메시 계층에서 해결한다.
   - **blue-green**: 새 버전(green)을 전체 수량으로 미리 띄워두고 Service의 selector를
     한 번에 전환. 즉시 전환/즉시 롤백이 장점, 자원 2배가 단점.
-  - **canary**: 새 버전을 소수(예: 1/10)만 띄워 일부 트래픽으로 검증 후 점진 확대.
-    실제 비율 제어는 Ingress/서비스메시(Istio 등)가 담당.
+  - **canary**: "탄광의 카나리아"에서 따온 이름 — 위험을 소수(일부 트래픽)에게만 먼저
+    노출시켜, 전체가 다치기 전에 이상 징후를 감지하는 전략. 새 버전을 극소수(예: 5~10%)
+    트래픽에만 흘려보내 에러율·지연시간을 지켜보다가, 문제없으면 점진적으로 비율을
+    늘리고 문제가 있으면 즉시 0%로 되돌린다. 구현 방식은 정교함 순으로 3단계:
+    1. **파드 개수 비율만으로** (도구 불필요): 같은 label의 Deployment 두 개(안정
+       9개 + canary 1개)를 한 Service 뒤에 두면, Service가 파드 목록에서 무작위 분배하니
+       자연스럽게 ~10%가 canary로 감. 세밀한 비율 조정이나 "특정 사용자만" 같은 요청
+       단위 제어는 불가능.
+    2. **Ingress 가중치 라우팅**: nginx-ingress의 canary annotation
+       (`nginx.ingress.kubernetes.io/canary-weight` 등)으로 퍼센트를 직접 지정.
+    3. **서비스 메시**(Istio 등): 퍼센트뿐 아니라 특정 헤더·쿠키를 가진 요청만 canary로
+       보내는 것까지 가능 — 내부 QA 팀만 먼저 태워보는 식의 정교한 제어.
+
+**롤링 업데이트와 canary, 뭐가 다른가** — 둘 다 신구 버전이 잠시 섞인다는 점은 같지만, 푸는
+문제가 다르다.
+- **롤링 업데이트**는 "파드가 Ready한가"만 보고 **자동으로, 멈추지 않고** 100% 신버전까지
+  행진한다. 섞이는 건 교체 과정의 부산물일 뿐, 비율을 사람이 의도적으로 조절하거나 오래
+  유지하지 않는다.
+- **canary**는 "이 비율의 트래픽에서 문제가 없는가"를 **의도적으로, 원하는 만큼 오래**
+  관찰하려는 것이다. 비율은 파드 readiness가 아니라 사람(또는 자동화된 지표 판단)이
+  직접 정하고 조절한다.
+- 한 줄로: 롤링 업데이트는 "안전하게 교체하는 절차", canary는 "교체하기 전에 위험을
+  측정하는 절차". 실무에서는 canary로 안전을 확인한 뒤 롤링 업데이트(또는 blue-green)로
+  전체 전환하는 식으로 **함께 쓰인다.**
 
 > **면접 답변**: "롤링 업데이트는 maxSurge와 maxUnavailable로 속도와 안전을 조절합니다.
 > 무중단이 중요하면 maxUnavailable을 0으로 두고 maxSurge로만 교체합니다. 이때 새 파드의
@@ -431,6 +453,51 @@ rollout-demo-f755dc575-qzlqv    1/1     Running            0          15m
 
 `rollout status`는 "1 out of 3 new replicas have been updated..."에서 멈춘 채 타임아웃.
 `maxUnavailable: 0`이라 새 파드가 Ready 되기 전엔 옛 파드를 안 죽이므로 **14분 동안 서비스 무중단**.
+
+### 직접 확인한 실습 — Blue-Green과 Canary
+
+매니페스트: `manifests/day07/bluegreen-demo.yaml`, `manifests/day07/canary-demo.yaml`.
+각 버전을 ConfigMap으로 서로 다른 `index.html`을 nginx에 물려서, 실제로 어느 버전이
+응답하는지 눈으로 구분되게 만들었다 (BLUE/GREEN, STABLE/CANARY).
+
+**Blue-Green — Service selector 전환**:
+
+```powershell
+kubectl run curltest --image=busybox --rm -it --restart=Never -- wget -qO- bluegreen-svc
+<h1>BLUE (v1.26)</h1>
+
+kubectl patch service bluegreen-svc --patch-file=lab/patch-green.json
+kubectl run curltest2 --image=busybox --rm -it --restart=Never -- wget -qO- bluegreen-svc
+<h1>GREEN (v1.27)</h1>
+
+kubectl patch service bluegreen-svc --patch-file=lab/patch-blue.json
+kubectl run curltest3 --image=busybox --rm -it --restart=Never -- wget -qO- bluegreen-svc
+<h1>BLUE (v1.26)</h1>
+```
+
+**app-blue/app-green 파드는 한 번도 재시작되지 않았다** — Service의 selector만 바꿔서
+트래픽 전체가 BLUE→GREEN→BLUE로 즉시 전환됐다. blue-green의 "즉시 전환/즉시 롤백"이
+실제로 이렇게(파드 교체가 아니라 Service 재배선) 구현된다는 걸 확인.
+
+**Canary — 파드 개수 비율**:
+
+```powershell
+kubectl get endpoints canary-svc
+canary-svc   10.244.0.126:80,10.244.0.127:80,10.244.0.128:80 + 2 more...   27s
+```
+(총 5개 엔드포인트 = stable 4 + canary 1, 표시된 3개 + "2 more")
+
+```powershell
+kubectl run canary-test --image=busybox --rm -it --restart=Never -- sh -c 'for i in $(seq 1 20); do wget -qO- canary-svc; echo; done | sort | uniq -c'
+      5 <h1>CANARY (v1.27)</h1>
+     15 <h1>STABLE (v1.26)</h1>
+```
+
+20번 요청 중 STABLE 15 / CANARY 5 — 이론상 4:1(80:20)에 가깝지만 정확히는 75:25로 나왔다.
+**표본이 20개뿐이라 이론값에서 벗어난 것**이고, 동시에 "파드 개수 비율" 방식은 애초에
+정밀한 비율을 보장하는 장치가 아니라는 것도 실측으로 드러난 셈이다 — Service는 그냥
+엔드포인트 목록에서 무작위로 고를 뿐이다. 정밀한 비율 제어나 대량 트래픽에서의 안정적인
+퍼센트가 필요하면 Ingress 가중치나 서비스 메시가 필요한 이유가 여기서 드러난다.
 
 **③ 롤백** — `kubectl rollout undo deployment/rollout-demo`:
 

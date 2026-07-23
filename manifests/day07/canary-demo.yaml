@@ -1,0 +1,78 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: canary-stable-html
+data:
+  index.html: "<h1>STABLE (v1.26)</h1>"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: canary-new-html
+data:
+  index.html: "<h1>CANARY (v1.27)</h1>"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: canary-stable
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: canary-demo
+      track: stable
+  template:
+    metadata:
+      labels:
+        app: canary-demo
+        track: stable
+    spec:
+      containers:
+        - name: web
+          image: nginx:1.26
+          volumeMounts:
+            - name: html
+              mountPath: /usr/share/nginx/html
+      volumes:
+        - name: html
+          configMap:
+            name: canary-stable-html
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: canary-new
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: canary-demo
+      track: canary
+  template:
+    metadata:
+      labels:
+        app: canary-demo
+        track: canary
+    spec:
+      containers:
+        - name: web
+          image: nginx:1.27
+          volumeMounts:
+            - name: html
+              mountPath: /usr/share/nginx/html
+      volumes:
+        - name: html
+          configMap:
+            name: canary-new-html
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: canary-svc
+spec:
+  selector:
+    app: canary-demo
+  ports:
+    - port: 80
+      targetPort: 80
