@@ -1,0 +1,13 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: day9-sa-pod-reader-binding
+  namespace: day9-ns
+subjects:
+  - kind: ServiceAccount
+    name: day9-sa
+    namespace: day9-ns
+roleRef:
+  kind: Role
+  name: pod-reader
+  apiGroup: rbac.authorization.k8s.io

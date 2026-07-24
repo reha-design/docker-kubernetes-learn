@@ -1,0 +1,45 @@
+<svg width="680" height="245" viewBox="0 0 680 245" xmlns="http://www.w3.org/2000/svg" role="img" font-family="'Malgun Gothic', 'Apple SD Gothic Neo', Arial, sans-serif">
+  <title>SecurityContext — 설정에 따른 세 가지 실제 결과</title>
+  <desc>runAsUser만 지정하면 그룹은 root로 남고, runAsGroup까지 지정해야 완전한 비루트가 된다. runAsNonRoot와 runAsUser:0을 함께 쓰면 모순되어 kubelet이 컨테이너 시작을 거부한다.</desc>
+
+  <rect x="0" y="0" width="680" height="245" fill="#FFFFFF"/>
+
+  <defs>
+    <marker id="arrow4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#5F5E5A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <!-- 설정 (row1) -->
+  <rect x="40" y="30" width="180" height="70" rx="10" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="130" y="55" text-anchor="middle" font-size="12" font-weight="500" fill="#2C2C2A">runAsUser: 1000</text>
+  <text x="130" y="75" text-anchor="middle" font-size="11" fill="#5F5E5A">(runAsGroup 없음)</text>
+
+  <rect x="250" y="30" width="180" height="70" rx="10" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="340" y="55" text-anchor="middle" font-size="12" font-weight="500" fill="#2C2C2A">runAsUser: 1000</text>
+  <text x="340" y="75" text-anchor="middle" font-size="11" fill="#5F5E5A">+ runAsGroup: 1000</text>
+
+  <rect x="460" y="30" width="180" height="70" rx="10" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="550" y="55" text-anchor="middle" font-size="12" font-weight="500" fill="#2C2C2A">runAsNonRoot: true</text>
+  <text x="550" y="75" text-anchor="middle" font-size="11" fill="#5F5E5A">+ runAsUser: 0</text>
+
+  <line x1="130" y1="100" x2="130" y2="128" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow4)"/>
+  <line x1="340" y1="100" x2="340" y2="128" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow4)"/>
+  <line x1="550" y1="100" x2="550" y2="128" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow4)"/>
+
+  <!-- 결과 (row2) -->
+  <rect x="40" y="130" width="180" height="90" rx="10" fill="#FAEEDA" stroke="#BA7517" stroke-width="1"/>
+  <text x="130" y="158" text-anchor="middle" font-size="13" font-weight="500" fill="#854F0B">uid=1000, gid=0(root)</text>
+  <text x="130" y="178" text-anchor="middle" font-size="11" fill="#BA7517">그룹은 root로 남음</text>
+
+  <rect x="250" y="130" width="180" height="90" rx="10" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1"/>
+  <text x="340" y="158" text-anchor="middle" font-size="13" font-weight="500" fill="#085041">uid=1000, gid=1000</text>
+  <text x="340" y="178" text-anchor="middle" font-size="11" fill="#0F6E56">완전한 비루트</text>
+
+  <rect x="460" y="130" width="180" height="90" rx="10" fill="#FCEBEB" stroke="#A32D2D" stroke-width="1"/>
+  <text x="550" y="150" text-anchor="middle" font-size="12" font-weight="500" fill="#791F1F">
+    <tspan x="550" dy="0">CreateContainer-</tspan>
+    <tspan x="550" dy="15">ConfigError</tspan>
+  </text>
+  <text x="550" y="185" text-anchor="middle" font-size="11" fill="#A32D2D">kubelet 단계에서 거부</text>
+</svg>

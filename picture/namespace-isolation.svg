@@ -1,0 +1,21 @@
+<svg width="680" height="280" viewBox="0 0 680 280" xmlns="http://www.w3.org/2000/svg" role="img" font-family="'Malgun Gothic', 'Apple SD Gothic Neo', Arial, sans-serif">
+  <title>Namespace — 하나의 클러스터, 여러 논리적 구획</title>
+  <desc>같은 클러스터 안에서 day9-ns와 default 네임스페이스가 완전히 독립된 이름 공간을 가진다. 같은 이름(myapp)의 리소스가 각 네임스페이스에 충돌 없이 공존할 수 있다.</desc>
+
+  <rect x="0" y="0" width="680" height="280" fill="#FFFFFF"/>
+
+  <rect x="40" y="30" width="600" height="230" rx="12" fill="none" stroke="#B4B2A9" stroke-width="1" stroke-dasharray="6 4"/>
+  <text x="56" y="52" font-size="13" fill="#5F5E5A">클러스터 (물리 인프라 공유)</text>
+
+  <rect x="70" y="80" width="250" height="150" rx="10" fill="#E6F1FB" stroke="#185FA5" stroke-width="1"/>
+  <text x="85" y="102" font-size="13" font-weight="500" fill="#0C447C">day9-ns</text>
+  <rect x="100" y="120" width="180" height="44" rx="8" fill="#FFFFFF" stroke="#185FA5" stroke-width="1"/>
+  <text x="190" y="147" text-anchor="middle" font-size="13" fill="#0C447C">myapp (Pod)</text>
+
+  <rect x="360" y="80" width="250" height="150" rx="10" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1"/>
+  <text x="375" y="102" font-size="13" font-weight="500" fill="#085041">default</text>
+  <rect x="390" y="120" width="180" height="44" rx="8" fill="#FFFFFF" stroke="#0F6E56" stroke-width="1"/>
+  <text x="480" y="147" text-anchor="middle" font-size="13" fill="#085041">myapp (Pod)</text>
+
+  <text x="340" y="245" text-anchor="middle" font-size="12" fill="#5F5E5A">→ 이름은 같아도(myapp) 서로 완전히 다른 리소스 — 물리적으로는 같은 클러스터를 공유</text>
+</svg>

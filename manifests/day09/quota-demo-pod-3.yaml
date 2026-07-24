@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: quota-demo-pod-3
+  namespace: day9-ns
+spec:
+  containers:
+    - name: web
+      image: nginx
