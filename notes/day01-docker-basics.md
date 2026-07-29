@@ -215,12 +215,14 @@ services:
   db:
     image: mysql:8.0
     environment:
-      - MYSQL_ROOT_PASSWORD=secret
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
     volumes:
       - db_data:/var/lib/mysql
 volumes:
   db_data:
 ```
+비밀번호를 compose 파일에 직접 쓰지 않고 `${MYSQL_ROOT_PASSWORD}`로 참조 — 실제 값은
+`.env.example`을 복사한 `.env`(gitignore 처리)에 둔다.
 
 > **주의**: 위처럼 짧은 문법의 `depends_on`은 **시작 순서만** 보장한다. db 컨테이너가 떴다고
 > MySQL이 접속 가능하다는 뜻은 아니므로, "준비 완료"까지 기다리려면 db에 `healthcheck`를 정의하고

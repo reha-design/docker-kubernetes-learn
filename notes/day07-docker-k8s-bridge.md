@@ -612,8 +612,9 @@ services:
   db:
     image: postgres:16
     environment:
-      POSTGRES_PASSWORD: learn1234
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
 ```
+마찬가지로 비밀번호는 `.env.example`을 복사한 `.env`(gitignore 처리)에서 읽어온다.
 
 ### 왜 이렇게 설계됐는가
 
