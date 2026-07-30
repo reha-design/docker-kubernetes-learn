@@ -115,6 +115,8 @@ controller-manager(+클라우드 환경의 cloud-controller-manager)까지다. `
 
 ### 컴포넌트 간 통신 흐름 — "모두 API 서버를 통해서만 대화한다"
 
+![kubectl run 실행 시 컴포넌트 간 통신 흐름 — API 서버 중심의 요청 처리 순서](../picture/k8s-component-flow.svg)
+
 `kubectl run` 실행 시 실제 순서:
 1. `kubectl` → API 서버로 "Pod 만들어줘" 요청
 2. API 서버가 검증 후 etcd에 "새 Pod 필요" 기록
@@ -599,6 +601,8 @@ Pod가 몇 번을 재생성되든 이름 하나로 계속 정확한 IP를 얻을
 ---
 
 ## 8. Ingress — 하나의 진입점에서 여러 Service로 라우팅
+
+![Ingress 경로 기반 L7 라우팅 — 같은 Host에서 경로별로 다른 Service로 분기](../picture/ingress-routing.svg)
 
 ### 왜 Service만으로는 부족한가
 

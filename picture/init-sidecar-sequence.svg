@@ -1,0 +1,70 @@
+<svg width="700" height="390" viewBox="0 0 700 390" xmlns="http://www.w3.org/2000/svg" role="img" font-family="'Malgun Gothic', 'Apple SD Gothic Neo', Arial, sans-serif">
+  <title>Init 컨테이너와 사이드카 — 시작/종료 순서</title>
+  <desc>Pod 내 컨테이너 시작 순서를 보여주는 타임라인. init 컨테이너가 먼저 완료되고, 네이티브 사이드카가 시작된 후 메인 컨테이너가 시작되며, 종료 시에는 메인이 먼저 종료되고 사이드카가 마지막에 종료된다.</desc>
+  <rect x="0" y="0" width="700" height="390" fill="#FFFFFF"/>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#5F5E5A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="350" y="28" text-anchor="middle" font-size="15" font-weight="600" fill="#2C2C2A">Init 컨테이너와 사이드카 — 시작/종료 순서</text>
+
+  <!-- Timeline arrow -->
+  <line x1="130" y1="55" x2="668" y2="55" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="678" y="59" font-size="10" fill="#5F5E5A">시간</text>
+
+  <!-- Phase dividers -->
+  <line x1="280" y1="42" x2="280" y2="260" stroke="#5F5E5A" stroke-width="0.8" stroke-dasharray="4,3"/>
+  <line x1="520" y1="42" x2="520" y2="260" stroke="#5F5E5A" stroke-width="0.8" stroke-dasharray="4,3"/>
+
+  <!-- Phase labels -->
+  <text x="200" y="48" text-anchor="middle" font-size="11" font-weight="500" fill="#5F5E5A">Phase 1: Init</text>
+  <text x="400" y="48" text-anchor="middle" font-size="11" font-weight="500" fill="#5F5E5A">Phase 2: Running</text>
+  <text x="600" y="48" text-anchor="middle" font-size="11" font-weight="500" fill="#5F5E5A">Phase 3: 종료</text>
+
+  <!-- Container labels (left side) -->
+  <text x="125" y="100" text-anchor="end" font-size="11" font-weight="500" fill="#0D47A1">init 컨테이너</text>
+  <text x="125" y="155" text-anchor="end" font-size="11" font-weight="500" fill="#4C1D95">네이티브 사이드카</text>
+  <text x="125" y="210" text-anchor="end" font-size="11" font-weight="500" fill="#085041">메인 컨테이너</text>
+
+  <!-- init container bar (Blue) - Phase 1 only -->
+  <rect x="140" y="85" width="130" height="26" rx="6" fill="#E8F0FE" stroke="#1A73E8" stroke-width="1.2"/>
+  <text x="205" y="103" text-anchor="middle" font-size="10" fill="#0D47A1">실행 -> 완료 -> 종료</text>
+
+  <!-- sidecar bar (Purple) - starts at Phase 2, extends into Phase 3 -->
+  <rect x="290" y="140" width="310" height="26" rx="6" fill="#F3E8FF" stroke="#7C3AED" stroke-width="1.2"/>
+  <text x="445" y="158" text-anchor="middle" font-size="10" fill="#4C1D95">먼저 시작, 계속 실행, 나중에 종료</text>
+
+  <!-- main container bar (Green) - starts after sidecar, ends before sidecar -->
+  <rect x="310" y="195" width="200" height="26" rx="6" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1.2"/>
+  <text x="410" y="213" text-anchor="middle" font-size="10" fill="#085041">init 완료 후 시작</text>
+
+  <!-- Termination order markers -->
+  <text x="517" y="213" font-size="10" font-weight="500" fill="#993C1D">&#x2460; 먼저 종료</text>
+  <text x="607" y="158" font-size="10" font-weight="500" fill="#993C1D">&#x2461; 나중 종료</text>
+
+  <!-- Status labels below bars -->
+  <text x="200" y="252" text-anchor="middle" font-size="10" fill="#5F5E5A">Status: Init:0/1</text>
+  <text x="200" y="266" text-anchor="middle" font-size="10" fill="#5F5E5A">PodInitializing</text>
+  <text x="400" y="252" text-anchor="middle" font-size="10" fill="#0F6E56">Status: 2/2 Running</text>
+  <text x="600" y="252" text-anchor="middle" font-size="10" fill="#993C1D">Terminating</text>
+
+  <!-- Legend box -->
+  <rect x="30" y="285" width="640" height="60" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1"/>
+
+  <rect x="50" y="300" width="14" height="14" rx="3" fill="#E8F0FE" stroke="#1A73E8" stroke-width="1"/>
+  <text x="72" y="312" font-size="10" fill="#0D47A1">init: 먼저 실행, 완료 후 종료</text>
+
+  <rect x="260" y="300" width="14" height="14" rx="3" fill="#F3E8FF" stroke="#7C3AED" stroke-width="1"/>
+  <text x="282" y="312" font-size="10" fill="#4C1D95">사이드카: 먼저 시작, 나중에 종료</text>
+
+  <rect x="498" y="300" width="14" height="14" rx="3" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1"/>
+  <text x="520" y="312" font-size="10" fill="#085041">메인: init 완료 후 시작</text>
+
+  <text x="350" y="336" text-anchor="middle" font-size="11" font-weight="500" fill="#5F5E5A">핵심: restartPolicy: Always → init의 순서 보장 + 사이드카의 지속 실행</text>
+
+  <!-- Key point -->
+  <text x="350" y="378" text-anchor="middle" font-size="13" font-weight="600" fill="#085041">시작 순서 보장 + 종료 순서 보장 + Job 완료 판정에서 제외</text>
+</svg>

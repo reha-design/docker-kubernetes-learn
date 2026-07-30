@@ -527,6 +527,8 @@ Rolling back will not update the kubectl.kubernetes.io/last-applied-configuratio
 
 ## 6. QoS 클래스 — 자원 선언이 곧 생존 순위다
 
+![QoS 클래스 축출 우선순위 — BestEffort, Burstable, Guaranteed 3단계 비교](../picture/qos-eviction-priority.svg)
+
 ### 개념
 
 QoS(Quality of Service) 클래스는 **노드 메모리가 부족해질 때 누구부터 쫓아낼지(evict)의

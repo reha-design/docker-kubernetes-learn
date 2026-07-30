@@ -35,6 +35,8 @@ GitOps/CI-CD 파이프라인에서는 "이 YAML이 원하는 상태(desired stat
 
 ## 1. PersistentVolume / PersistentVolumeClaim / StorageClass
 
+![PV / PVC / StorageClass 스토리지 추상화 계층](../picture/pv-pvc-storageclass.svg)
+
 ### 개념
 
 - **PV(PersistentVolume)**: 실제 스토리지 자원 (관리자가 미리 만들거나, StorageClass가 동적
@@ -299,6 +301,8 @@ FQDN(`....default.svc.cluster.local`)으로 재시도하니 정상 해석됐다.
 
 ## 3. Job / CronJob
 
+![Job / CronJob 완료 목적 워크로드의 생명주기](../picture/job-cronjob-lifecycle.svg)
+
 ### 개념
 
 Deployment/StatefulSet은 "계속 떠 있어야 하는" 워크로드를 위한 것이지만, Job은 **"완료가
@@ -417,6 +421,8 @@ kubectl delete -f cronjob.yaml
 ---
 
 ## 4. DaemonSet
+
+![DaemonSet 노드당 정확히 1개씩 배치](../picture/daemonset-per-node.svg)
 
 ### 개념
 

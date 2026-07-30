@@ -161,6 +161,8 @@ COPY(0.2s)만 다시 했다. 지금은 flask 하나라 수 초 차이지만, 실
 
 ## 3. 멀티스테이지 빌드 — 440MB → 15.7MB
 
+![멀티스테이지 빌드 빌드 도구 분리로 이미지 경량화](../picture/multistage-build.svg)
+
 ### 개념
 
 하나의 Dockerfile 안에 `FROM`을 여러 번 써서, 앞 스테이지(빌더)에서 컴파일하고 뒷
@@ -234,6 +236,8 @@ Hello from a tiny image!
 ---
 
 ## 4. Docker 네트워킹 — bridge / host / none, 커스텀 네트워크
+
+![Docker 4가지 네트워크 모드(기본 bridge, 커스텀 bridge, host, none) 비교 다이어그램](../picture/docker-networking.svg)
 
 ### 개념 — 기본 3종
 

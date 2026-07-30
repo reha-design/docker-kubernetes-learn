@@ -227,6 +227,8 @@ requests 부족이 아니라 **라벨 불일치**로 인한 Pending이 정확히
 
 ## 2. Affinity / Anti-affinity — nodeSelector가 못 하는 것
 
+![Affinity(끌어당김)와 Taint(밀어냄) 스케줄링 방향 비교 다이어그램](../picture/affinity-vs-taint.svg)
+
 ### 개념
 
 nodeSelector는 정확히 하나의 key=value만 요구할 수 있고(AND만), **다른 파드의 위치를
@@ -369,6 +371,8 @@ taint 걸린 `minikube-m02`에서 정상 `Running` — toleration이 taint를 �
 ---
 
 ## 4. Init 컨테이너와 사이드카 — 컨테이너 시작 순서 제어
+
+![Init 컨테이너, 네이티브 사이드카, 메인 컨테이너의 시작/종료 순서 타임라인](../picture/init-sidecar-sequence.svg)
 
 ### 개념
 

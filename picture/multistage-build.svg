@@ -1,0 +1,99 @@
+<svg width="700" height="460" viewBox="0 0 700 460" xmlns="http://www.w3.org/2000/svg" role="img" font-family="'Malgun Gothic', 'Apple SD Gothic Neo', Arial, sans-serif">
+  <title>멀티스테이지 빌드 — 빌드 도구 분리로 이미지 경량화</title>
+  <desc>싱글 스테이지에서는 컴파일러와 SDK가 최종 이미지에 포함되어 440MB이지만, 멀티스테이지 빌드로 빌드 단계를 분리하면 실행 파일만 Alpine에 복사하여 15.7MB로 줄일 수 있다.</desc>
+
+  <rect x="0" y="0" width="700" height="460" fill="#FFFFFF"/>
+
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#5F5E5A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#0F6E56" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <!-- === LEFT: Single Stage === -->
+  <text x="130" y="30" text-anchor="middle" font-size="14" font-weight="600" fill="#712B13">싱글 스테이지</text>
+  <text x="130" y="48" text-anchor="middle" font-size="11" fill="#993C1D">FROM golang:1.21</text>
+
+  <rect x="40" y="60" width="180" height="280" rx="10" fill="#FAECE7" stroke="#993C1D" stroke-width="1.2"/>
+
+  <!-- Layers inside single stage -->
+  <rect x="55" y="75" width="150" height="38" rx="6" fill="#FFFFFF" stroke="#993C1D" stroke-width="1"/>
+  <text x="130" y="99" text-anchor="middle" font-size="12" fill="#712B13">Go 컴파일러</text>
+
+  <rect x="55" y="122" width="150" height="38" rx="6" fill="#FFFFFF" stroke="#993C1D" stroke-width="1"/>
+  <text x="130" y="146" text-anchor="middle" font-size="12" fill="#712B13">Go SDK / 도구</text>
+
+  <rect x="55" y="169" width="150" height="38" rx="6" fill="#FFFFFF" stroke="#993C1D" stroke-width="1"/>
+  <text x="130" y="193" text-anchor="middle" font-size="12" fill="#712B13">소스 코드</text>
+
+  <rect x="55" y="216" width="150" height="38" rx="6" fill="#FFFFFF" stroke="#993C1D" stroke-width="1"/>
+  <text x="130" y="240" text-anchor="middle" font-size="12" fill="#712B13">의존성 캐시</text>
+
+  <rect x="55" y="263" width="150" height="38" rx="6" fill="#FFFFFF" stroke="#993C1D" stroke-width="1"/>
+  <text x="130" y="287" text-anchor="middle" font-size="12" fill="#712B13">실행 파일</text>
+
+  <text x="130" y="322" text-anchor="middle" font-size="14" font-weight="700" fill="#993C1D">440MB</text>
+
+  <!-- Size indicator arrow (tall) -->
+  <line x1="28" y1="60" x2="28" y2="340" stroke="#993C1D" stroke-width="1.5"/>
+  <line x1="22" y1="60" x2="34" y2="60" stroke="#993C1D" stroke-width="1.5"/>
+  <line x1="22" y1="340" x2="34" y2="340" stroke="#993C1D" stroke-width="1.5"/>
+
+  <!-- === MIDDLE: VS arrow === -->
+  <text x="302" y="195" text-anchor="middle" font-size="16" font-weight="700" fill="#2C2C2A">vs</text>
+
+  <!-- === RIGHT: Multi Stage === -->
+  <text x="510" y="30" text-anchor="middle" font-size="14" font-weight="600" fill="#085041">멀티스테이지</text>
+
+  <!-- Stage 1: Builder (dashed, faded) -->
+  <text x="440" y="48" text-anchor="middle" font-size="11" fill="#5F5E5A">Stage 1: builder</text>
+  <rect x="350" y="60" width="180" height="175" rx="10" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1.2" stroke-dasharray="6 4"/>
+
+  <rect x="365" y="75" width="150" height="30" rx="6" fill="#FFFFFF" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="440" y="95" text-anchor="middle" font-size="11" fill="#2C2C2A">Go 컴파일러</text>
+
+  <rect x="365" y="112" width="150" height="30" rx="6" fill="#FFFFFF" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="440" y="132" text-anchor="middle" font-size="11" fill="#2C2C2A">Go SDK / 도구</text>
+
+  <rect x="365" y="149" width="150" height="30" rx="6" fill="#FFFFFF" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="440" y="169" text-anchor="middle" font-size="11" fill="#2C2C2A">소스 코드</text>
+
+  <rect x="365" y="186" width="150" height="30" rx="6" fill="#FFFFFF" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="440" y="206" text-anchor="middle" font-size="11" fill="#2C2C2A">실행 파일 (빌드 결과)</text>
+
+  <!-- Faded overlay / cross-out label -->
+  <text x="440" y="248" text-anchor="middle" font-size="12" font-weight="500" fill="#993C1D">빌드 후 폐기</text>
+  <line x1="350" y1="60" x2="530" y2="235" stroke="#993C1D" stroke-width="1" opacity="0.4"/>
+
+  <!-- COPY arrow from Stage 1 to Stage 2 -->
+  <path d="M 440 235 L 440 265 L 590 265 L 590 285" fill="none" stroke="#0F6E56" stroke-width="1.5" marker-end="url(#arrow-green)"/>
+  <text x="510" y="260" font-size="11" font-weight="500" fill="#0F6E56">COPY --from=builder /app</text>
+
+  <!-- Stage 2: Final (green, small) -->
+  <text x="590" y="296" text-anchor="middle" font-size="11" fill="#085041">Stage 2: final</text>
+  <rect x="540" y="300" width="140" height="100" rx="10" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1.2"/>
+
+  <rect x="555" y="315" width="110" height="28" rx="6" fill="#FFFFFF" stroke="#0F6E56" stroke-width="1"/>
+  <text x="610" y="334" text-anchor="middle" font-size="11" fill="#085041">Alpine (8MB)</text>
+
+  <rect x="555" y="350" width="110" height="28" rx="6" fill="#FFFFFF" stroke="#0F6E56" stroke-width="1"/>
+  <text x="610" y="369" text-anchor="middle" font-size="11" fill="#085041">실행 파일만</text>
+
+  <text x="610" y="418" text-anchor="middle" font-size="14" font-weight="700" fill="#0F6E56">15.7MB</text>
+
+  <!-- Size indicator arrow (short) -->
+  <line x1="528" y1="300" x2="528" y2="400" stroke="#0F6E56" stroke-width="1.5"/>
+  <line x1="522" y1="300" x2="534" y2="300" stroke="#0F6E56" stroke-width="1.5"/>
+  <line x1="522" y1="400" x2="534" y2="400" stroke="#0F6E56" stroke-width="1.5"/>
+
+  <!-- Big comparison text -->
+  <rect x="120" y="365" width="340" height="40" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1.2"/>
+  <text x="290" y="391" text-anchor="middle" font-size="15" font-weight="700" fill="#085041">440MB → 15.7MB (28배 감소)</text>
+
+  <!-- Key point box -->
+  <rect x="40" y="420" width="620" height="30" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="350" y="440" text-anchor="middle" font-size="12" fill="#2C2C2A">빌드 도구는 최종 이미지에서 제거 → 크기 ↓ 공격 표면 ↓ 배포 속도 ↑</text>
+</svg>

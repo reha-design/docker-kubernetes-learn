@@ -1,0 +1,85 @@
+<svg width="700" height="480" viewBox="0 0 700 480" xmlns="http://www.w3.org/2000/svg" role="img" font-family="'Malgun Gothic', 'Apple SD Gothic Neo', Arial, sans-serif">
+  <title>볼륨과 bind mount — 컨테이너 밖으로 데이터 분리</title>
+  <desc>컨테이너 삭제 시 쓰기 레이어의 데이터가 소멸하는 문제를 볼륨으로 해결하는 구조. Docker Volume은 Docker가 관리하는 저장소이고, Bind Mount는 호스트의 특정 경로를 직접 마운트한다.</desc>
+  <rect x="0" y="0" width="700" height="480" fill="#FFFFFF"/>
+  <defs>
+    <marker id="arrowGray" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#5F5E5A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="arrowGreen" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#0F6E56" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="arrowRed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#993C1D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="350" y="30" text-anchor="middle" font-size="15" font-weight="600" fill="#2C2C2A">볼륨과 bind mount — 컨테이너 밖으로 데이터 분리</text>
+
+  <!-- === LEFT: Without Volume === -->
+  <text x="175" y="60" text-anchor="middle" font-size="13" font-weight="600" fill="#712B13">컨테이너 삭제 시</text>
+
+  <!-- Container box (crossed out) -->
+  <rect x="55" y="80" width="240" height="120" rx="10" fill="#FAECE7" stroke="#993C1D" stroke-width="1"/>
+  <text x="175" y="102" text-anchor="middle" font-size="12" font-weight="500" fill="#712B13">컨테이너</text>
+
+  <!-- Writable layer inside -->
+  <rect x="75" y="112" width="200" height="44" rx="6" fill="#FFFFFF" stroke="#993C1D" stroke-width="0.8"/>
+  <text x="175" y="130" text-anchor="middle" font-size="11" fill="#712B13">쓰기 레이어 (writable layer)</text>
+  <text x="175" y="146" text-anchor="middle" font-size="10" fill="#993C1D">DB 파일, 로그 등</text>
+
+  <!-- X mark over container -->
+  <line x1="60" y1="85" x2="290" y2="195" stroke="#993C1D" stroke-width="2.5" opacity="0.5"/>
+  <line x1="290" y1="85" x2="60" y2="195" stroke="#993C1D" stroke-width="2.5" opacity="0.5"/>
+
+  <!-- Arrow down to "data lost" -->
+  <line x1="175" y1="200" x2="175" y2="232" stroke="#993C1D" stroke-width="1.5" marker-end="url(#arrowRed)"/>
+
+  <rect x="85" y="235" width="180" height="32" rx="6" fill="#FAECE7" stroke="#993C1D" stroke-width="1" stroke-dasharray="4,3"/>
+  <text x="175" y="256" text-anchor="middle" font-size="12" font-weight="500" fill="#712B13">데이터 소멸</text>
+
+  <!-- Dotted vertical divider -->
+  <line x1="350" y1="50" x2="350" y2="280" stroke="#5F5E5A" stroke-width="1" stroke-dasharray="6,4"/>
+
+  <!-- === RIGHT: With Volume === -->
+  <text x="525" y="60" text-anchor="middle" font-size="13" font-weight="600" fill="#085041">볼륨 사용 시</text>
+
+  <!-- Container box -->
+  <rect x="405" y="80" width="180" height="80" rx="10" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1"/>
+  <text x="495" y="102" text-anchor="middle" font-size="12" font-weight="500" fill="#085041">컨테이너</text>
+  <text x="495" y="120" text-anchor="middle" font-size="11" fill="#0F6E56">/data (마운트 지점)</text>
+  <rect x="418" y="130" width="154" height="20" rx="4" fill="#FFFFFF" stroke="#0F6E56" stroke-width="0.6"/>
+  <text x="495" y="145" text-anchor="middle" font-size="10" fill="#0F6E56">앱 코드, 라이브러리</text>
+
+  <!-- Arrow to volume -->
+  <line x1="495" y1="160" x2="495" y2="192" stroke="#0F6E56" stroke-width="1.5" marker-end="url(#arrowGreen)"/>
+  <text x="530" y="180" font-size="10" fill="#0F6E56">mount</text>
+
+  <!-- Volume box (separate) -->
+  <rect x="425" y="195" width="140" height="50" rx="10" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1.5"/>
+  <text x="495" y="216" text-anchor="middle" font-size="12" font-weight="500" fill="#085041">Volume</text>
+  <text x="495" y="234" text-anchor="middle" font-size="10" fill="#0F6E56">DB 파일, 로그 등</text>
+
+  <!-- Annotation -->
+  <rect x="395" y="258" width="220" height="28" rx="6" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.8" stroke-dasharray="4,3"/>
+  <text x="505" y="277" text-anchor="middle" font-size="11" font-weight="500" fill="#085041">컨테이너 삭제해도 데이터 유지</text>
+
+  <!-- === BOTTOM: Two types === -->
+  <line x1="40" y1="310" x2="660" y2="310" stroke="#5F5E5A" stroke-width="0.8" stroke-dasharray="6,4"/>
+  <text x="350" y="340" text-anchor="middle" font-size="13" font-weight="600" fill="#2C2C2A">두 가지 마운트 타입</text>
+
+  <!-- Docker Volume -->
+  <rect x="40" y="360" width="290" height="100" rx="10" fill="#E8F0FE" stroke="#1A73E8" stroke-width="1"/>
+  <text x="185" y="385" text-anchor="middle" font-size="13" font-weight="500" fill="#0D47A1">Docker Volume</text>
+  <text x="185" y="405" text-anchor="middle" font-size="11" fill="#1A73E8">Docker가 관리하는 저장소</text>
+  <rect x="60" y="416" width="250" height="28" rx="5" fill="#FFFFFF" stroke="#1A73E8" stroke-width="0.6"/>
+  <text x="185" y="435" text-anchor="middle" font-size="10" fill="#0D47A1">/var/lib/docker/volumes/볼륨이름/_data</text>
+
+  <!-- Bind Mount -->
+  <rect x="370" y="360" width="290" height="100" rx="10" fill="#F3E8FF" stroke="#7C3AED" stroke-width="1"/>
+  <text x="515" y="385" text-anchor="middle" font-size="13" font-weight="500" fill="#4C1D95">Bind Mount</text>
+  <text x="515" y="405" text-anchor="middle" font-size="11" fill="#7C3AED">호스트의 특정 경로를 그대로 마운트</text>
+  <rect x="390" y="416" width="250" height="28" rx="5" fill="#FFFFFF" stroke="#7C3AED" stroke-width="0.6"/>
+  <text x="515" y="435" text-anchor="middle" font-size="10" fill="#4C1D95">-v /호스트/경로:/컨테이너/경로</text>
+</svg>
