@@ -1,0 +1,71 @@
+<svg width="720" height="480" viewBox="0 0 720 480" xmlns="http://www.w3.org/2000/svg" role="img" font-family="'Malgun Gothic', 'Apple SD Gothic Neo', Arial, sans-serif">
+  <title>Ingress vs Gateway API — 리소스 구조와 권한 분리 비교</title>
+  <desc>Ingress는 라우팅 규칙과 인프라 설정이 하나의 리소스에 뭉쳐 있고 벤더 annotation에 의존한다. Gateway API는 GatewayClass, Gateway, HTTPRoute로 역할을 분리해 인프라 관리자, 클러스터 관리자, 앱 개발자가 각자 다른 리소스를 관리할 수 있다.</desc>
+  <rect x="0" y="0" width="720" height="480" fill="#FFFFFF"/>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#5F5E5A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <text x="360" y="28" text-anchor="middle" font-size="15" font-weight="600" fill="#2C2C2A">Ingress vs Gateway API — 리소스 구조와 권한 분리</text>
+
+  <!-- Left half: Ingress -->
+  <text x="175" y="58" text-anchor="middle" font-size="13" font-weight="600" fill="#712B13">Ingress (Day 2)</text>
+
+  <rect x="45" y="72" width="260" height="120" rx="10" fill="#FAECE7" stroke="#993C1D" stroke-width="1.5"/>
+  <text x="175" y="96" text-anchor="middle" font-size="12" font-weight="600" fill="#712B13">kind: Ingress</text>
+  <text x="175" y="118" text-anchor="middle" font-size="10" fill="#993C1D">host/path 라우팅 규칙</text>
+  <text x="175" y="136" text-anchor="middle" font-size="10" fill="#993C1D">+ nginx.ingress.kubernetes.io/</text>
+  <text x="175" y="150" text-anchor="middle" font-size="10" fill="#993C1D">rewrite-target 같은 벤더 annotation</text>
+  <text x="175" y="172" text-anchor="middle" font-size="10" font-weight="500" fill="#712B13">전부 한 리소스, 한 담당자</text>
+
+  <line x1="175" y1="192" x2="175" y2="222" stroke="#993C1D" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <rect x="95" y="228" width="160" height="40" rx="8" fill="#FFFFFF" stroke="#993C1D" stroke-width="1"/>
+  <text x="175" y="252" text-anchor="middle" font-size="11" fill="#712B13">Service → Pod</text>
+
+  <rect x="45" y="292" width="260" height="70" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="175" y="314" text-anchor="middle" font-size="11" font-weight="500" fill="#2C2C2A">누가 관리?</text>
+  <text x="175" y="334" text-anchor="middle" font-size="10" fill="#5F5E5A">권한 분리 불가 — 인프라 설정과</text>
+  <text x="175" y="349" text-anchor="middle" font-size="10" fill="#5F5E5A">라우팅 규칙을 같은 사람이 수정</text>
+
+  <!-- Divider -->
+  <line x1="355" y1="52" x2="355" y2="420" stroke="#5F5E5A" stroke-width="1.2" stroke-dasharray="6,4"/>
+
+  <!-- Right half: Gateway API -->
+  <text x="530" y="58" text-anchor="middle" font-size="13" font-weight="600" fill="#0D47A1">Gateway API (오늘)</text>
+
+  <!-- GatewayClass -->
+  <rect x="400" y="72" width="260" height="46" rx="8" fill="#E8F0FE" stroke="#1A73E8" stroke-width="1.2"/>
+  <text x="420" y="92" font-size="11" font-weight="600" fill="#0D47A1">GatewayClass</text>
+  <text x="420" y="108" font-size="9" fill="#1A73E8">인프라 관리자 — 구현체 선택(Envoy 등)</text>
+
+  <line x1="530" y1="118" x2="530" y2="132" stroke="#5F5E5A" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+  <!-- Gateway -->
+  <rect x="400" y="138" width="260" height="46" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1.2"/>
+  <text x="420" y="158" font-size="11" font-weight="600" fill="#085041">Gateway</text>
+  <text x="420" y="174" font-size="9" fill="#0F6E56">클러스터 관리자 — 리스너/포트/인증서</text>
+
+  <line x1="530" y1="184" x2="530" y2="198" stroke="#5F5E5A" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+  <!-- HTTPRoute -->
+  <rect x="400" y="204" width="260" height="46" rx="8" fill="#F3E8FF" stroke="#7C3AED" stroke-width="1.2"/>
+  <text x="420" y="224" font-size="11" font-weight="600" fill="#4C1D95">HTTPRoute</text>
+  <text x="420" y="240" font-size="9" fill="#7C3AED">앱 개발자 — 라우팅 규칙(경로/헤더 등)</text>
+
+  <line x1="530" y1="250" x2="530" y2="272" stroke="#5F5E5A" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <rect x="450" y="278" width="160" height="40" rx="8" fill="#FFFFFF" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="530" y="302" text-anchor="middle" font-size="11" fill="#2C2C2A">Service → Pod</text>
+
+  <rect x="400" y="336" width="260" height="70" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="530" y="358" text-anchor="middle" font-size="11" font-weight="500" fill="#2C2C2A">누가 관리?</text>
+  <text x="530" y="378" text-anchor="middle" font-size="10" fill="#5F5E5A">역할별 리소스 분리 — RBAC으로</text>
+  <text x="530" y="393" text-anchor="middle" font-size="10" fill="#5F5E5A">각 리소스마다 다른 권한 부여 가능</text>
+
+  <!-- Bottom summary -->
+  <rect x="45" y="426" width="615" height="40" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="1"/>
+  <text x="352" y="450" text-anchor="middle" font-size="11" fill="#2C2C2A">Ingress: 리소스 1개 + 벤더 annotation 확장  |  Gateway API: 역할별 리소스 분리 + 표준 스펙 확장(TLSRoute, GRPCRoute 등)</text>
+</svg>

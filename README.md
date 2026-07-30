@@ -22,6 +22,7 @@
 - [Day 7 — Docker→K8s 브리지 (ENTRYPOINT vs CMD, 이미지 유통 경로, imagePullPolicy) + Probe/배포 전략/QoS + Docker Compose](notes/day07-docker-k8s-bridge.md)
 - [Day 8 — 스케줄링 제어 (nodeSelector/affinity/taint·toleration, 멀티노드 CNI 트러블슈팅) + init 컨테이너/사이드카](notes/day08-scheduling.md)
 - [Day 9 — Namespace/RBAC/ServiceAccount (Role·RoleBinding, 최소 권한 원칙) + ResourceQuota/LimitRange + SecurityContext](notes/day09-namespace-rbac.md)
+- [Day 10 — NetworkPolicy(CNI 의존성, deny-all/선택적 allow) + Gateway API(Envoy Gateway, Ingress와 비교, NetworkPolicy와의 실전 충돌)](notes/day10-networkpolicy-gateway.md)
 - [복습 문답 1회차 — Day 1~7 전체 점검, 취약 지점 평가와 복습 우선순위](notes/review01-day01-07-quiz.md)
 - [회상형 워크북 1호 — 취약 지점 인출 훈련 (먼저 쓰고, 정답 펼쳐 대조)](notes/review01-workbook.md)
 - [실습 가이드 — cgroup으로 requests/limits 실측 검증 (재현 가능한 절차)](notes/lab-cgroup-verification.md)
