@@ -28,6 +28,7 @@
 - [실습 가이드 — cgroup으로 requests/limits 실측 검증 (재현 가능한 절차)](notes/lab-cgroup-verification.md)
 - [개관 노트 — 부하분산 전체 그림 (DNS부터 DB까지)](notes/load-balancing-overview.md)
 - [개관 노트 — 장애격리 전체 그림 (컨테이너부터 컨트롤 플레인까지)](notes/fault-isolation-overview.md)
+- [보충 학습 — 리버스 프록시와 nginx (root/proxy_pass/upstream, K8s Service와 비교)](notes/nginx-reverse-proxy.md)
 
 ## 학습 로드맵 (면접 대비, Day 7~12)
 
