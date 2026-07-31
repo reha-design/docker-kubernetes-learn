@@ -604,6 +604,14 @@ Pod가 몇 번을 재생성되든 이름 하나로 계속 정확한 IP를 얻을
 
 ![Ingress 경로 기반 L7 라우팅 — 같은 Host에서 경로별로 다른 Service로 분기](../picture/ingress-routing.svg)
 
+전체 트래픽 흐름과 Deployment의 역할을 한 그림으로 보면:
+
+![클라이언트 → Ingress → Service → Pod 트래픽 흐름과 Deployment의 역할](../picture/ingress-service-deployment-flow.svg)
+
+> 요청은 항상 위에서 아래로(실선) 흐른다 — 클라이언트 → Ingress(정문 안내데스크) →
+> Service(부서 팻말) → Pod. **Deployment는 이 흐름에 끼어 있지 않고**(점선), Pod
+> 개수만 유지한다 — Service가 파드를 관리하지 않는 것과 정확히 같은 이유다.
+
 ### 왜 Service만으로는 부족한가
 
 Service는 "고정된 IP로 Pod 집합을 찾는다"는 문제까지만 해결한다. 하지만 실무에서는:
