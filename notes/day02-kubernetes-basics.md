@@ -616,18 +616,19 @@ Pod가 몇 번을 재생성되든 이름 하나로 계속 정확한 IP를 얻을
 
 **Service는 여러 개 있는 게 당연하다** — 부서(백엔드 앱)마다 각자의 팻말이 있는 것이므로:
 
-```
-        Ingress Controller (안내데스크, 보통 1개)
-                     │
-      ┌──────────────┼──────────────┐
-      │              │              │
-      ▼              ▼              ▼
- ┌──────────┐   ┌──────────┐   ┌──────────┐
- │ Service  │   │ Service  │   │ Service  │   ← 부서 팻말, 부서마다 하나씩
- │  shop    │   │  admin   │   │   api    │
- └────┬─────┘   └────┬─────┘   └────┬─────┘
-      │              │              │
-   Pod Pod        Pod Pod        Pod Pod
+```mermaid
+flowchart TD
+    IC["Ingress Controller<br/>(안내데스크, 보통 1개)"]
+    S1["Service: shop<br/>(부서 팻말)"]
+    S2["Service: admin<br/>(부서 팻말)"]
+    S3["Service: api<br/>(부서 팻말)"]
+    P1["Pod, Pod"]
+    P2["Pod, Pod"]
+    P3["Pod, Pod"]
+
+    IC --> S1 --> P1
+    IC --> S2 --> P2
+    IC --> S3 --> P3
 ```
 
 **Ingress는 "규칙서"와 "그걸 읽는 안내데스크"를 구분해야 헷갈리지 않는다.** Ingress
@@ -635,33 +636,35 @@ Pod가 몇 번을 재생성되든 이름 하나로 계속 정확한 IP를 얻을
 흔하지만, 그 규칙서들을 읽고 실제로 안내하는 소프트웨어(Ingress **Controller**)는 보통
 **하나**가 전부 읽는다:
 
-```
-      shop.example.com   admin.example.com   api.example.com
-             │                   │                   │
-             └─────────┬─────────┴─────────┬─────────┘
-                        │                   │
-                 ┌──────▼──────────────────▼──────┐
-                 │   Ingress Controller (nginx)     │  ← 규칙서 3장을
-                 │   규칙서 3장을 전부 읽고 있음       │     한 명이 다 읽음
-                 └──────────────┬────────────────────┘
-                                 ▼
-                       (위 그림처럼 각 Service로 분기)
+```mermaid
+flowchart TD
+    H1["shop.example.com<br/>(규칙서 1장)"]
+    H2["admin.example.com<br/>(규칙서 1장)"]
+    H3["api.example.com<br/>(규칙서 1장)"]
+    IC["Ingress Controller (nginx)<br/>규칙서 3장을 전부 읽고 있음"]
+    S["각 Service로 분기<br/>(위 그림 참고)"]
+
+    H1 --> IC
+    H2 --> IC
+    H3 --> IC
+    IC --> S
 ```
 
 다만 건물에 공개 출입구와 직원/VIP 전용 출입구를 따로 두듯, Ingress Controller 자체를
 **여러 개** 띄워서 역할을 분리하는 것도 실무에서 쓴다 (`ingressClassName`으로 규칙서마다
 "이건 몇 번 데스크가 처리해"라고 지정):
 
-```
-   공개 트래픽                      내부 전용 트래픽
-       │                                   │
-┌──────▼──────────┐              ┌─────────▼─────────┐
-│ Ingress Controller│              │ Ingress Controller │
-│   #1 (공개용)      │              │   #2 (내부 전용)     │
-└──────┬────────────┘              └─────────┬───────────┘
-       │                                      │
-       ▼                                      ▼
-   Service(들)                             Service(들)
+```mermaid
+flowchart TD
+    Pub["공개 트래픽"]
+    Int["내부 전용 트래픽"]
+    IC1["Ingress Controller #1<br/>(공개용)"]
+    IC2["Ingress Controller #2<br/>(내부 전용)"]
+    S1["Service(들)"]
+    S2["Service(들)"]
+
+    Pub --> IC1 --> S1
+    Int --> IC2 --> S2
 ```
 
 **정리**: 규칙서(Ingress 리소스)는 앱 개수만큼 많은 게 정상, 안내데스크(Controller)는
