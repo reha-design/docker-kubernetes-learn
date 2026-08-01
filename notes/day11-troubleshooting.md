@@ -333,6 +333,8 @@ container "app" out of: app, sidecar` 메시지로 어떤 컨테이너가 자동
 
 ## 5. 표준 트러블슈팅 워크플로 — 오늘 다룬 5가지 장애 유형 통합
 
+![Pod 시작 파이프라인 — 단계별 장애 유형](../picture/pod-startup-failure-stages.svg)
+
 | 장애 유형 | 1차 확인 | 핵심 단서 | 원인 계층 |
 |---|---|---|---|
 | Pending ([Day 3](day03-hpa-scheduling.md)) | `describe pod` → Node | `Node: <none>` | 스케줄링 (requests) |
