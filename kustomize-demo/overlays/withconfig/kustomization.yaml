@@ -1,0 +1,7 @@
+resources:
+  - ../../base
+
+configMapGenerator:
+  - name: app-config
+    literals:
+      - GREETING=hello-v2

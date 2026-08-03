@@ -15,3 +15,6 @@ spec:
       containers:
         - name: web
           image: nginx:1.26
+          envFrom:
+            - configMapRef:
+                name: app-config

@@ -1,0 +1,7 @@
+apiVersion: learn.example.com/v1
+kind: Website
+metadata:
+  name: my-blog
+spec:
+  url: "https://example.com"
+  replicas: 3

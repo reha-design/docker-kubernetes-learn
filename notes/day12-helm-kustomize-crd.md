@@ -280,6 +280,225 @@ func (r *DatabaseReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 
 ---
 
+## 5. 심화 학습 — CRD 단독 실습, configMapGenerator, Operator 내부 동작
+
+앞서 배운 내용을 더 깊이 파고든 세 가지: (1) CRD 혼자서는 정말 아무 일도 안 일어나는지
+직접 증명, (2) Kustomize의 `configMapGenerator`로 ConfigMap 변경 시 자동 롤아웃을
+유발하는 법, (3) Operator가 변화를 어떻게 감지하는지의 내부 메커니즘.
+
+### 5.1 CRD 단독으로는 아무 일도 안 일어난다 — 직접 증명
+
+CRD를 "새 리소스 양식 등록"이라고 설명했는데, 말로만 하지 않고 직접 확인했다. 컨트롤러
+없이 CRD와 인스턴스만 만들면 `replicas: 3`이라고 선언해도 실제로 파드가 하나도 안
+생긴다는 걸 증명하는 실습이다.
+
+`crd-demo/website-crd.yaml` (새 리소스 종류 `Website` 정의, shortName `ws`,
+`spec.url`/`spec.replicas` 필드, 커스텀 컬럼 출력 포함)과 `crd-demo/website-instance.yaml`
+(`url: https://example.com`, `replicas: 3`인 인스턴스 `my-blog`)을 만들어 순서대로
+적용했다.
+
+**1단계 — CRD 등록 확인**:
+```powershell
+kubectl apply -f crd-demo/website-crd.yaml
+kubectl get crd websites.learn.example.com
+```
+```
+customresourcedefinition.apiextensions.k8s.io/websites.learn.example.com created
+NAME                         CREATED AT
+websites.learn.example.com   2026-08-03T01:52:05Z
+```
+
+**2단계 — 인스턴스 생성, 내장 리소스처럼 동작하는지 확인**:
+```powershell
+kubectl apply -f crd-demo/website-instance.yaml
+kubectl get website
+kubectl get ws
+```
+```
+website.learn.example.com/my-blog created
+NAME      URL                   REPLICAS
+my-blog   https://example.com   3
+NAME      URL                   REPLICAS
+my-blog   https://example.com   3
+```
+`kubectl get website`가 내장 리소스와 똑같이 동작하고, shortName `ws`도 먹히고,
+CRD에 정의한 커스텀 컬럼(URL, Replicas)까지 정확히 출력된다.
+
+**3단계, 가장 중요한 확인 — 파드가 실제로 생겼는가**:
+```powershell
+kubectl get pods
+```
+```
+NAME                          READY   STATUS      RESTARTS        AGE
+backend-7878cc679d-cvhsg      1/1     Running     1 (3d18h ago)   3d18h
+secure-app-56b454dcc6-j2zjf   1/1     Running     1 (3d18h ago)   4d
+test-client                   0/1     Completed   0               3d20h
+test-client-allowed           0/1     Completed   0               3d19h
+```
+`my-blog`에 `replicas: 3`이라고 분명히 적었는데, 목록엔 `my-blog`나 `website`와
+관련된 파드가 **하나도 없다.** 보이는 파드는 전부 Day 9/10에서 만든 것으로 이번
+실습과 무관하다.
+
+**증명된 것**: CRD 인스턴스는 etcd에 구조화된 데이터로 저장되고 `kubectl get`으로
+조회까지 가능하지만, 그 자체는 아무 동작도 유발하지 않는다. `replicas: 3`이라는
+값을 읽어서 실제로 파드 3개를 만드는 일은 오직 **그 리소스를 감시하는 컨트롤러
+(Operator)가 있을 때만** 일어난다 — 이 데모에는 컨트롤러를 만들지 않았으므로 아무
+일도 안 일어난 것이 당연한 결과다.
+
+### 5.2 Kustomize `configMapGenerator` — 값이 바뀌면 이름도 바뀌게 만들기
+
+**문제 상황**: ConfigMap을 고정된 이름(`app-config`)으로 두고 내용만 바꿔서 재적용하면,
+이미 떠 있는 Pod는 재시작되지 않는 한 새 값을 못 읽는다. Deployment 컨트롤러 입장에서는
+"Pod 템플릿(참조하는 ConfigMap **이름**)이 안 바뀌었으니 아무것도 할 필요 없다"고
+판단하기 때문이다.
+
+**해결책**: `configMapGenerator`는 ConfigMap을 **내용 기반 해시가 붙은 이름**으로
+생성하고, 그 ConfigMap을 참조하는 모든 리소스(Deployment의 `envFrom` 등)의 참조
+이름도 **자동으로 같은 해시 이름으로 재작성**한다. 내용이 바뀌면 해시가 바뀌고,
+해시가 바뀌면 참조 이름이 바뀌고, 참조 이름이 바뀌면 Pod 템플릿이 바뀐 것으로
+간주되어 정상적으로 롤링 업데이트가 일어난다.
+
+> **왜 이렇게 설계됐는가**: ConfigMap 변경은 그 자체로 Pod에 전파되는 메커니즘이
+> 없다(Kubernetes 기본 동작). `configMapGenerator`는 이 문제를 새 메커니즘을
+> 추가하는 대신, 기존에 이미 존재하는 "Pod 템플릿이 바뀌면 롤링 업데이트한다"는
+> Deployment 컨트롤러의 동작을 그대로 활용해서 우회한다 — 이름을 바꿔서 컨트롤러가
+> "이건 다른 리소스다"라고 착각하게 만드는 영리한 트릭이다.
+
+`kustomize-demo/base/deployment.yaml`에 `app-config`를 참조하는 `envFrom`을
+추가하고, `kustomize-demo/overlays/withconfig/kustomization.yaml`에
+`configMapGenerator`로 `GREETING=hello-v1` 리터럴을 넣었다.
+
+**1단계 — 렌더링 결과로 해시 이름 확인**:
+```powershell
+kubectl kustomize kustomize-demo/overlays/withconfig | Select-String "name: app-config|GREETING"
+```
+```
+  GREETING: hello-v1
+  name: app-config-tm2b4ck8d2
+            name: app-config-tm2b4ck8d2
+```
+ConfigMap 이름과 Deployment의 `envFrom.configMapRef.name`이 똑같은 해시로 맞춰져
+렌더링된다.
+
+**2단계 — 실제 적용**:
+```powershell
+kubectl apply -k kustomize-demo/overlays/withconfig
+kubectl get configmap
+kubectl get deployment kustomize-demo -o jsonpath="{.spec.template.spec.containers[0].envFrom}"
+```
+```
+configmap/app-config-tm2b4ck8d2 created
+deployment.apps/kustomize-demo created
+NAME                    DATA   AGE
+app-config-tm2b4ck8d2   1      1s
+kube-root-ca.crt        1      4d6h
+[{"configMapRef":{"name":"app-config-tm2b4ck8d2"}}]
+```
+
+**3단계 — 값 변경 후 재적용, 롤아웃이 실제로 일어나는지 확인**:
+`GREETING`을 `hello-v1` → `hello-v2`로 바꾸고 재적용:
+```powershell
+kubectl get replicaset -l app=kustomize-demo
+kubectl apply -k kustomize-demo/overlays/withconfig
+kubectl get configmap
+kubectl get replicaset -l app=kustomize-demo
+```
+```
+NAME                        DESIRED   CURRENT   READY   AGE
+kustomize-demo-84bc85b764   1         1         1       39s
+
+configmap/app-config-kg222654fm created
+deployment.apps/kustomize-demo configured
+
+NAME                    DATA   AGE
+app-config-kg222654fm   1      0s
+app-config-tm2b4ck8d2   1      40s
+kube-root-ca.crt        1      4d6h
+
+NAME                        DESIRED   CURRENT   READY   AGE
+kustomize-demo-5d59c55865   1         1         1       2s
+kustomize-demo-84bc85b764   0         0         0       42s
+```
+해시가 `tm2b4ck8d2` → `kg222654fm`로 바뀌었고, **새 ReplicaSet**(`5d59c55865`)이
+생기고 기존 ReplicaSet(`84bc85b764`)은 0으로 스케일 다운됐다 — ConfigMap 내용
+변경이 실제 롤링 업데이트로 이어지는 전체 체인이 확인됐다.
+
+**실무 주의점**: 기존 `app-config-tm2b4ck8d2`는 자동으로 삭제되지 않고 그대로
+남는다. `kubectl apply -k`만으로는 고아가 된 이전 리소스를 정리(prune)해주지
+않으며, 정리하려면 `--prune` 옵션을 별도로 사용해야 한다.
+
+> **면접 답변**: "`configMapGenerator`는 ConfigMap 이름에 내용 기반 해시를 붙이고,
+> 그 ConfigMap을 참조하는 리소스의 이름도 자동으로 재작성합니다. ConfigMap 값이
+> 바뀌면 해시가 바뀌고, 참조 이름이 바뀌니 Pod 템플릿이 바뀐 것으로 간주되어
+> Deployment 컨트롤러가 정상적으로 롤링 업데이트를 수행합니다. 다만 이전 ConfigMap은
+> 자동 삭제되지 않아서 `--prune` 없이는 고아 리소스가 쌓입니다."
+
+### 5.3 Operator는 변화를 어떻게 "알아채는가" — List+Watch, Informer, Work Queue (이론)
+
+CRD 인스턴스를 만들거나 수정했을 때 Operator가 그 변화를 아는 방법은 **폴링이
+아니라 API 서버가 실시간으로 밀어주는(push) 구독 방식**이다. Day 2에서 본
+kube-proxy가 Service/EndpointSlice 변화를 감지하는 것과 같은 client-go
+**informer 패턴**이다. (이 항목은 이론 확인 목적이라 실습 없이 개념만 정리한다.)
+
+1. **Reflector** — `LIST`로 현재 전체 목록과 `resourceVersion`(etcd의 논리적
+   타임스탬프)을 가져온 뒤, `WATCH ...?resourceVersion=N`으로 그 시점 이후의
+   변화만 스트리밍받는다. 이 Watch는 끊기지 않고 계속 열려있는 HTTP 연결이다.
+   연결이 끊기면 마지막 resourceVersion부터 재구독하고, 그 리비전이 etcd
+   압축(compaction)으로 이미 사라졌으면 `410 Gone`을 받아 처음부터 다시 LIST한다.
+2. **DeltaFIFO** — Reflector가 받은 이벤트(Added/Updated/Deleted/Sync)를 객체
+   키와 함께 순서대로 담는 큐. 같은 객체에 대한 연속 이벤트는 처리 전이면
+   합쳐진다(compress).
+3. **Indexer(로컬 캐시)** — DeltaFIFO에서 꺼낸 이벤트를 스레드 세이프한 메모리
+   캐시에 반영한다. Reconcile 로직은 API 서버에 매번 GET하지 않고 이 캐시를
+   읽는다 — API 서버/etcd 부하를 줄이기 위한 설계다. 여러 컨트롤러가 같은
+   리소스를 감시할 때도 **SharedInformer**로 캐시를 공유해 Watch 연결을 하나만
+   유지한다.
+4. **Work Queue** — 캐시 갱신 후 이벤트 핸들러가 **객체 이름(namespace/name)만**
+   큐에 넣는다(변경 내용 자체는 안 넣음). 이 큐는 집합(set) 성질이 있어 같은
+   키의 중복 이벤트는 하나로 합쳐지고, 에러 발생 시 지수 백오프로 재시도한다.
+5. **Reconcile(namespace, name)** — 워커가 큐에서 이름을 꺼내 호출한다. "무엇이
+   바뀌었는지"가 아니라 **원하는 상태와 실제 상태를 처음부터 다시 비교**하는
+   레벨 기반(level-triggered) 방식이라, 이벤트를 하나 놓쳐도 다음 트리거 때
+   자기 치유된다.
+6. **Resync** — 일정 주기로 로컬 캐시의 모든 객체를 다시 Work Queue에 재주입해서
+   "혹시 놓친 이벤트가 없는지" 안전망 역할을 한다. API 서버에 다시 묻는 게
+   아니라 이미 가진 캐시를 재사용한다.
+
+```
+API 서버 (etcd)
+   │ LIST(resourceVersion 획득) → WATCH(그 시점부터 스트림)
+   ▼
+Reflector
+   │ Added/Updated/Deleted + 키
+   ▼
+DeltaFIFO → Indexer(로컬 캐시) ── 주기적 Resync(전체 재주입)
+   │ 이벤트 핸들러 트리거
+   ▼
+Work Queue (키만, 중복 제거, 재시도 백오프)
+   │
+   ▼
+Reconcile(namespace, name) → 원하는 상태 vs 실제 상태 비교 → 필요한 만큼만 쓰기
+```
+
+쓰기 요청에도 낙관적 동시성 제어가 걸려서, 요청에 담긴 `resourceVersion`이
+서버의 현재 값과 다르면(그 사이 다른 주체가 수정) `409 Conflict`가 나고
+Reconcile이 재시도된다 — Day 7 롤아웃에서 본 것과 같은 낙관적 락 패턴이다.
+
+> **왜 이렇게 설계됐는가**: 이벤트 기반으로 "무엇이 바뀌었는지"를 정밀 추적하면
+> 이벤트를 하나라도 놓쳤을 때 상태가 영원히 어긋날 위험이 있다. 레벨 기반으로
+> "그냥 통째로 다시 비교"하면 이벤트를 놓쳐도 다음 트리거(또는 Resync) 때
+> 알아서 맞춰지는 자기 치유 특성을 가진다. Deployment/ReplicaSet 등 K8s 내장
+> 컨트롤러 전체가 이 원칙을 따른다.
+
+> **면접 답변**: "Operator는 API 서버에 List+Watch로 리소스를 구독합니다. Watch는
+> 열린 HTTP 스트림으로 변화를 실시간으로 받고, 받은 변화는 로컬 캐시(Indexer)를
+> 갱신한 뒤 리소스 이름만 work queue에 넣습니다. 워커가 큐를 소비하며 Reconcile을
+> 호출하는데, 무엇이 바뀌었는지가 아니라 원하는 상태와 실제 상태를 처음부터
+> 다시 비교하는 레벨 기반 방식이라 이벤트를 놓쳐도 자기 치유가 됩니다. kube-proxy가
+> Service/EndpointSlice 변화를 감지하는 것과 동일한 client-go informer 패턴입니다."
+
+---
+
 ## 면접 준비 관점 — 메커니즘 질문 vs 설계 질문
 
 인프라 면접이 "답이 정해져 있다"고 느껴지기 쉬운데, 정확히는 **도메인(인프라 vs 백엔드)이
