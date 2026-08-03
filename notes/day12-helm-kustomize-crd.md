@@ -128,3 +128,169 @@ No resources found in default namespace.
 ```
 한 줄로 관련 리소스가 전부 삭제됨 — 지금까지 리소스마다 따로 `kubectl delete`하던 것과
 대비된다.
+
+---
+
+## 2. Kustomize — 템플릿 없이 base + overlay로 패치
+
+### 개념
+
+Helm이 "빈칸(`{{ }}`)에 값을 채워넣는" 템플릿 방식이라면, Kustomize는 **원본 YAML은
+그대로 두고, 환경별로 패치(수정 메모)만 따로 얹는** 방식이다. 템플릿 문법이 아예 없고
+전부 순수한 YAML이다.
+
+- **`base/`** — 공통 원본 YAML
+- **`overlays/dev/`, `overlays/prod/`** — 각 환경마다 "base에서 이것만 바꿔라"는 패치만
+  담은 폴더
+- **`kustomization.yaml`** — "이 리소스들을 쓰고, 이 패치를 적용해라"고 적는 설정 파일
+
+### 왜 이렇게 설계됐는가
+
+템플릿 언어(Go template)는 강력하지만 문법을 새로 배워야 하고, `{{ if }}`가 중첩되면
+YAML도 아니고 코드도 아닌 애매한 파일이 된다. Kustomize는 "원본은 항상 유효한 순수
+YAML로 유지하고, 차이만 패치로 표현"하는 쪽을 택해서 진입장벽을 낮추고, `kubectl`에
+`-k` 옵션으로 직접 내장(별도 설치 불필요)될 만큼 단순하게 설계됐다.
+
+> **면접 답변**: "Kustomize는 템플릿 문법 없이, 공통 base YAML에 환경별 패치를 얹어
+> 다른 결과물을 만드는 도구입니다. Helm처럼 릴리스 개념이나 버전 이력은 없고, 그냥
+> `kubectl apply -k`로 렌더링된 YAML을 적용할 뿐이라 git으로 직접 버전 관리합니다."
+
+### 직접 확인한 실습
+
+`base/deployment.yaml`(replicas: 1, `nginx:1.26`) + `overlays/dev`(패치 없음, base
+그대로) + `overlays/prod`(replicas: 3, `nginx:1.27`로 패치):
+
+```powershell
+kubectl kustomize kustomize-demo/overlays/dev | Select-String "replicas|image:"
+```
+```
+  replicas: 1
+      - image: nginx:1.26
+```
+```powershell
+kubectl kustomize kustomize-demo/overlays/prod | Select-String "replicas|image:"
+```
+```
+  replicas: 3
+      - image: nginx:1.27
+```
+같은 base가 overlay에 따라 다르게 렌더링됨을 확인.
+
+```powershell
+kubectl apply -k kustomize-demo/overlays/prod
+kubectl get pods -l app=kustomize-demo
+```
+```
+NAME                             READY   STATUS              AGE
+kustomize-demo-994796c98-75v64   0/1     ContainerCreating   1s
+kustomize-demo-994796c98-npl2c   0/1     ContainerCreating   1s
+kustomize-demo-994796c98-zp9qb   0/1     ContainerCreating   1s
+```
+정확히 3개(prod overlay의 패치대로) 생성됨.
+
+## 3. Helm vs Kustomize 비교
+
+| | Helm | Kustomize |
+|---|---|---|
+| 방식 | 템플릿(`{{ }}`)에 값 주입 | 순수 YAML + 패치 |
+| 학습 곡선 | 템플릿 문법을 새로 배워야 함 | 그냥 YAML이라 진입장벽 낮음 |
+| 버전 관리 | 릴리스 단위(`helm history`, `rollback`) | 없음 — git으로 직접 관리 |
+| 배포 단위 | 릴리스(설치된 인스턴스) | `kubectl apply -k` 결과물 |
+| 재사용 | 공개 차트 저장소(Artifact Hub) 생태계 큼 | 프로젝트 내부 환경별 변형에 특화 |
+
+핵심 차이 한 줄: **Helm은 "패키지를 설치하고 버전 관리"하는 도구, Kustomize는 "같은
+YAML을 환경별로 살짝 다르게 찍어내는" 도구.** 실무에서는 Helm으로 설치한 뒤 Kustomize로
+후처리 패치하는 식으로 같이 쓰기도 한다.
+
+---
+
+## 4. CRD/Operator — Kubernetes 자체를 확장하기
+
+### 개념
+
+- **CRD(Custom Resource Definition)** = 새로운 리소스 **종류**를 정의하는 것(명사).
+  등록하면 `kubectl get`/`apply`가 내장 리소스처럼 동작하지만, **그 자체는 아무 동작도
+  하지 않는다** — etcd에 저장되는 구조화된 데이터일 뿐. 예:
+  ```yaml
+  apiVersion: mygroup.example.com/v1
+  kind: Database
+  metadata:
+    name: my-postgres
+  spec:
+    engine: postgres
+    version: "15"
+    storageSize: 10Gi
+  ```
+  이걸 apply해도 실제 Postgres는 안 뜬다 — 그냥 양식이 저장된 것뿐.
+- **Operator** = 그 CRD 인스턴스를 지켜보다가 실제 작업(StatefulSet 생성, 버전 업그레이드
+  등)을 대신하는 **컨트롤러**(동사). "CRD + 그걸 감시하는 커스텀 컨트롤러"의 조합을
+  Operator 패턴이라 부른다.
+
+### 왜 이렇게 설계됐는가
+
+Deployment/ReplicaSet/StatefulSet 컨트롤러 자체가 이미 K8s가 기본 내장한 Operator다.
+CRD/Operator는 "원하는 상태 읽기 → 실제 상태 확인 → 다르면 맞추기"라는 **Day 4의 YAML
+선언형 전환과 동일한 리컨실 패턴**을, 3rd party가 자기 도메인(DB, 인증서, 메시지 큐 등)에
+대해 쓸 수 있게 일반화한 것이다.
+
+### Go 코드로 본 Reconcile 패턴 (kubebuilder 스타일, 개념 확인용 — 실행하지 않음)
+
+```go
+// Reconcile은 Database 리소스가 생성/수정되거나 주기적으로 다시 호출된다
+func (r *DatabaseReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+    // 1. "원하는 상태" 읽기 — 사용자가 YAML에 적은 것
+    var db mygroupv1.Database
+    if err := r.Get(ctx, req.NamespacedName, &db); err != nil {
+        return ctrl.Result{}, client.IgnoreNotFound(err)
+    }
+
+    // 2. "실제 상태" 확인 — 이 DB용 StatefulSet이 이미 떠 있는지
+    var sts appsv1.StatefulSet
+    err := r.Get(ctx, types.NamespacedName{Name: db.Name, Namespace: db.Namespace}, &sts)
+
+    if errors.IsNotFound(err) {
+        // 3. 없으면 spec대로 만든다
+        newSts := buildStatefulSetFor(&db)
+        return ctrl.Result{}, r.Create(ctx, newSts)
+    }
+
+    // 4. 있는데 버전이 다르면 업그레이드
+    if sts.Spec.Template.Spec.Containers[0].Image != "postgres:"+db.Spec.Version {
+        sts.Spec.Template.Spec.Containers[0].Image = "postgres:" + db.Spec.Version
+        return ctrl.Result{}, r.Update(ctx, &sts)
+    }
+
+    return ctrl.Result{}, nil
+}
+```
+
+이 함수는 한 번만 실행되는 게 아니라 **계속 반복 호출**된다 — Deployment 컨트롤러가
+"replica 수가 맞는지 계속 확인"하는 것과 완전히 같은 방식.
+
+### 실무 예시
+
+- **cert-manager**의 `Certificate` CRD — 인증서 만료를 감시하다가 자동 갱신
+- **CrunchyData/Percona의 DB Operator** — `PostgresCluster` CRD로 백업·장애조치·업그레이드
+  를 전부 자동화 — 위 Go 코드가 실제로 하는 일과 거의 같음
+
+> **면접 답변**: "CRD는 새로운 리소스 종류를 정의하는 것뿐이고, 실제 동작은 그 리소스를
+> 감시하는 Operator(커스텀 컨트롤러)가 담당합니다. 이건 사실 Deployment 컨트롤러가
+> 이미 하고 있는 '원하는 상태와 실제 상태를 비교해 맞추는' 패턴을, 3rd party가 자기
+> 도메인에 대해 쓸 수 있게 확장한 것입니다."
+
+---
+
+## 면접 준비 관점 — 메커니즘 질문 vs 설계 질문
+
+인프라 면접이 "답이 정해져 있다"고 느껴지기 쉬운데, 정확히는 **도메인(인프라 vs 백엔드)이
+아니라 질문 유형(메커니즘 vs 설계)이 정답의 고정 여부를 가른다.**
+
+- **메커니즘 질문** (예: "Deployment와 StatefulSet의 차이는?", "taint의 NoExecute는 뭐가
+  다른가?") — Kubernetes가 실제로 그렇게 동작하므로 정답이 하나다. 백엔드의 "ACID가
+  뭐야?"와 같은 성격 — **워크북 recall 방식으로 준비.**
+- **설계/트레이드오프 질문** (예: "Helm vs Kustomize 중 뭘 쓰겠는가", "멀티테넌트 클러스터의
+  RBAC을 어떻게 설계하겠는가") — 정답 암기가 아니라 **판단 근거를 설명하는 게 중요**하다.
+  백엔드의 "레이트 리미터를 어떻게 설계하겠는가"와 같은 성격.
+- 인프라 면접이 유독 "고정적"으로 느껴졌던 건 도메인 차이가 아니라, **CKA 커리큘럼
+  자체가 메커니즘 검증에 무게를 두기 때문**일 가능성이 크다. 실제로는 인프라도 설계형
+  질문이 나온다 — 다음 "모의 면접"에서 이 두 유형을 구분해서 준비한다.
