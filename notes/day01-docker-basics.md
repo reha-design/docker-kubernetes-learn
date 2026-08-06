@@ -25,9 +25,20 @@
 대신 트레이드오프도 있다: 커널을 공유하기 때문에 VM만큼 강한 보안 격리는 아니다
 (커널 취약점이 같은 호스트의 모든 컨테이너에 영향을 줄 수 있음).
 
-> **심화 대비**: 이 격리 약점을 보완하는 장치로 seccomp(시스템 콜 필터링),
-> capabilities 제한, AppArmor/SELinux가 기본 적용되며, 더 강한 격리가 필요하면
-> gVisor·Kata Containers처럼 컨테이너를 경량 샌드박스/VM 안에서 돌리는 런타임도 있다.
+> **심화 대비**: 이 격리 약점을 보완하는 장치들이 있는데, **무엇이 기본값인지 정확히
+> 구분해야 한다** (Docker 공식 문서 확인):
+> - **기본 적용됨** — ① **capabilities 제한**: "By default Docker drops all capabilities
+>   except those needed" (필요한 것만 남기는 allowlist 방식). ② **seccomp 기본 프로파일**:
+>   위험한 시스템 콜을 차단하는 `default.json`이 자동 적용된다.
+> - **호스트 환경에 따라 적용됨** — **AppArmor**: "When you run a container, it uses the
+>   `docker-default` policy unless you override it" — 단 **호스트에 AppArmor가 로드·활성화돼
+>   있어야** 한다(Ubuntu/Debian 계열). WSL2 환경에서는 보장되지 않는다.
+> - **기본 적용 아님** — **SELinux**: 데몬의 `--selinux-enabled` 옵션이나
+>   `--security-opt label=...`로 **명시적으로 켜야** 동작한다(주로 RHEL 계열). 켜져 있지
+>   않으면 아무 역할도 하지 않는다.
+>
+> 더 강한 격리가 필요하면 gVisor·Kata Containers처럼 컨테이너를 경량 샌드박스/VM 안에서
+> 돌리는 런타임도 있다.
 
 ### 면접 답변 템플릿
 > "컨테이너는 하이퍼바이저처럼 하드웨어를 가상화하는 게 아니라 호스트 커널을 그대로 공유하고,

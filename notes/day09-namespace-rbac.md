@@ -97,9 +97,11 @@ ServiceAccount는 **사람이 아니라 파드(워크로드)를 위한 인증 �
 쿠버네티스 공식 문서 기준(2026-07 확인) — 이 토큰이 마운트되는 방식도 시간이 지나며
 바뀌었다: v1.22부터는 `TokenRequest` API로 발급한 **짧은 수명의 자동 회전 토큰**을
 projected volume으로 마운트하는 방식이 기본이 됐고, v1.24부터는 ServiceAccount를 만들
-때 장기 토큰 Secret을 자동으로 함께 생성하던 예전 동작이 기본 비활성화됐다(관련 feature
-gate `LegacyServiceAccountTokenNoAutoGeneration`는 v1.27에서 제거되어 GA). 그래서 아래
-실습에서 `describe sa`에 `Tokens:` 항목이 안 뜨는 것이 정상이다.
+때 장기 토큰 Secret을 자동으로 함께 생성하던 예전 동작이 기본 비활성화됐다. 관련 feature
+gate `LegacyServiceAccountTokenNoAutoGeneration`은 **v1.24~v1.26 동안 기본 활성화 상태로
+쓰이다가 v1.26에서 GA(동작 확정)됐고, 게이트 자체는 v1.27에서 제거**됐다(GA된 시점과
+게이트가 사라진 시점이 다르므로 섞어 말하지 않도록 주의). 그래서 아래 실습에서
+`describe sa`에 `Tokens:` 항목이 안 뜨는 것이 정상이다.
 
 > **면접 답변**: "ServiceAccount는 사람이 아니라 파드를 위한 인증 신원입니다. 네임스페이스를
 > 만들면 default SA가 자동 생성되고, 파드는 시작될 때 이 신원의 토큰을 자동으로 마운트받아
@@ -347,8 +349,10 @@ pod/secctx-pod created
 uid=1000 gid=0(root) groups=0(root)
 ```
 UID는 1000으로 강제됐지만, **GID는 여전히 root(0)**다. `runAsUser`만으로는 그룹까지
-바뀌지 않는다는 뜻밖의(그러나 중요한) 결과 — busybox 이미지의 `/etc/passwd`에 uid 1000에
-대응하는 사용자 항목이 없어서, 런타임이 그룹을 못 찾고 기본값인 root 그룹으로 남긴 것.
+바뀌지 않는다 — 이건 이미지나 `/etc/passwd` 조회 실패 때문이 아니라 **Kubernetes에
+문서화된 기본 동작**이다. 공식 문서가 `runAsGroup`에 대해 명시한다: "If this field is
+omitted, the primary group ID of the containers will be root(0)." 즉 `runAsGroup`을
+안 적으면 primary GID는 무조건 0으로 남는 게 스펙이다.
 
 읽기전용 파일시스템이 실제로 쓰기를 막는지:
 ```powershell

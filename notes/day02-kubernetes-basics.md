@@ -333,7 +333,7 @@ ClusterIP로 온 패킷을 실제 Pod IP 중 하나로 바꿔치기(DNAT)하는 
 | userspace | kube-proxy 프로세스가 직접 중계 | 커널↔유저공간 왕복으로 느림. 사실상 폐기된 레거시 |
 | **iptables** | 넷필터에 규칙 설치, 처리는 커널 | 현재도 **기본값**. Service가 많으면 규칙이 선형으로 늘어남(O(n)) |
 | IPVS | 커널 내장 로드밸런서(해시 테이블) | Service 수천 개여도 성능 저하 적음(O(1)) |
-| nftables | iptables 후속. 커널 5.13+ 필요 | **v1.33(2025-02)에서 GA**. 성능은 개선됐지만 호환성 때문에 기본값은 여전히 iptables |
+| nftables | iptables 후속. 커널 5.13+ 필요 | **v1.33(2025-04-23 릴리스)에서 GA**(1.29 alpha → 1.31 beta → 1.33 stable, KEP-3866). 성능은 개선됐지만 호환성 때문에 기본값은 여전히 iptables |
 
 **중요 — "Ready 파드로만 보낸다"의 진짜 주체**: kube-proxy는 readiness를 직접 판단하지 않는다.
 Ready 여부로 파드를 거르는 건 **EndpointSlice 컨트롤러**다 — Service의 label selector와 맞는 파드

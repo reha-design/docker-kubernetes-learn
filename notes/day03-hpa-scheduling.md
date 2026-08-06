@@ -132,8 +132,13 @@ kubectl delete pod load-generator-1 load-generator-2 load-generator-3 load-gener
 
 | | CPU (압축 가능 자원) | 메모리 (압축 불가능 자원) |
 |---|---|---|
-| **requests →** | `cpu.shares` — 여러 컨테이너가 코어를 놓고 경쟁할 때의 **상대적 가중치**. 절대량이 아니라 비율만 정함 (예: 두 컨테이너가 각 100이면 5:5로 시분할) | 사실상 스케줄러 장부용으로만 쓰이고, 런타임에 별도로 강제되지 않음 |
-| **limits →** | `cpu.cfs_quota_us` — 주기(`cpu.cfs_period_us`, 기본 100ms)당 쓸 수 있는 CPU 시간 상한. 초과하면 **스로틀링**(느려짐, 안 죽음) | `memory.max`(cgroup v2) — 초과 시 커널 **OOM Killer**가 즉시 종료 |
+| **requests →** | 여러 컨테이너가 코어를 놓고 경쟁할 때의 **상대적 가중치**. 절대량이 아니라 비율만 정함 (예: 두 컨테이너가 같은 값이면 5:5로 시분할)<br>· cgroup **v1**: `cpu.shares` · cgroup **v2**: `cpu.weight` | 런타임에 상한으로 강제되지는 않고 주로 스케줄러 장부용. 다만 축출(eviction) 시 "requests를 얼마나 초과했는가"가 순위 계산에 쓰이므로([Day 7 §6](day07-docker-k8s-bridge.md)) 완전히 무의미한 값은 아니다 |
+| **limits →** | 주기(기본 100ms)당 쓸 수 있는 CPU 시간 상한. 초과하면 **스로틀링**(느려짐, 안 죽음)<br>· cgroup **v1**: `cpu.cfs_quota_us`/`cpu.cfs_period_us` · cgroup **v2**: `cpu.max`(`<쿼터> <주기>` 한 파일) | 초과 시 커널 **OOM Killer**가 즉시 종료<br>· cgroup **v1**: `memory.limit_in_bytes` · cgroup **v2**: `memory.max` |
+
+> **주의 — 파일 이름은 cgroup 버전마다 다르다.** 아래 실측은 cgroup **v2** 환경이라
+> `cpu.max`/`memory.max`를 읽었다. 면접에서 `cpu.shares`/`cpu.cfs_quota_us`만 말하면
+> cgroup v1 기준 답변이 되므로, "v2에서는 `cpu.weight`/`cpu.max`로 통합됐다"까지 붙이는
+> 게 안전하다. (재현 절차: [lab-cgroup-verification.md](lab-cgroup-verification.md))
 
 CPU와 메모리를 다르게 다루는 이유는 성격이 다르기 때문이다: CPU는 시분할로 나눠 쓸 수 있는
 **압축 가능(compressible)** 자원이라 초과해도 "느려지기만" 하면 되지만, 메모리는 이미 할당된

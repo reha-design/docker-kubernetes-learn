@@ -551,15 +551,25 @@ Day 3 내용과 구분: `limits` 초과는 **OOMKilled**(해당 컨테이너 즉
 풀리면 축출)가 있다. 조건에 걸리면 노드에 `MemoryPressure` Condition이 붙고, 그 노드엔 새
 BestEffort/Burstable 파드가 스케줄되지 않도록 taint가 자동으로 붙는다.
 
-**축출 대상 선정 순서** (공식 문서 기준):
-1. **QoS 클래스** — BestEffort → Burstable → Guaranteed 순으로 먼저 검토.
-2. **같은 클래스 내에서는 requests 대비 실제 사용량 초과율**이 큰 쪽 먼저 (예: Burstable 파드가
-   requests의 3배를 쓰고 있으면, 1.1배만 쓰는 다른 Burstable 파드보다 먼저 축출).
-3. **Pod Priority**(`priorityClass`)가 동점 상황의 tie-breaker로 개입.
+**축출 대상 선정 순서** (공식 문서 기준). 여기서 가장 자주 틀리는 지점이 있는데,
+**kubelet은 QoS 클래스를 순위 계산의 입력으로 쓰지 않는다** — 공식 문서에 명시돼 있다:
+"The kubelet does not use the pod's QoS class to determine the eviction order." kubelet이
+실제로 보는 파라미터는 다음 **세 가지, 이 순서대로**다:
 
-즉 "선언한 만큼만 정직하게 쓰는 파드"는 해당 자원에서 초과분이 없으니 이 순위 계산에서
-자연히 후순위로 밀린다 — QoS 등급 자체가 보호해주는 게 아니라, **초과 사용량이 없다는 사실**이
-보호해주는 것이다.
+1. **파드의 사용량이 requests를 초과했는가** (초과한 파드가 먼저 후보가 됨)
+2. **Pod Priority** (`priorityClass`) — tie-breaker가 아니라 **두 번째 기준**이다
+3. **requests 대비 사용량이 얼마나 큰가** (초과율)
+
+그 결과로 나타나는 **순위**는 이렇다:
+- 먼저 축출: **사용량이 requests를 초과한 BestEffort/Burstable 파드** — 이들끼리는
+  Priority, 그다음 초과량 순으로 정렬된다.
+- 마지막에 축출: **Guaranteed 파드와, 사용량이 requests보다 적은 Burstable 파드** —
+  이들끼리도 Priority 순.
+
+즉 결과만 보면 "BestEffort가 먼저, Guaranteed가 마지막"이라 QoS 순서처럼 보이지만, 그건
+**원인이 아니라 결과**다. QoS 등급 자체가 보호해주는 게 아니라, **초과 사용량이 없다는
+사실**이 보호해주는 것이다 — Guaranteed는 requests==limits라 정의상 requests를 초과할 수
+없으니 자동으로 후순위가 된다.
 
 ### 왜 이렇게 설계됐는가
 
@@ -572,6 +582,10 @@ BestEffort/Burstable 파드가 스케줄되지 않도록 taint가 자동으로 �
 > **면접 답변**: "QoS 클래스는 requests와 limits 설정으로부터 자동 계산되며, 노드 메모리
 > 압박 시 축출 우선순위를 결정합니다. requests와 limits가 완전히 같으면 Guaranteed,
 > 일부만 있으면 Burstable, 아예 없으면 BestEffort가 되고, 축출은 BestEffort부터 시작됩니다.
+> 다만 엄밀히 말하면 kubelet이 QoS 클래스를 직접 보고 순위를 매기는 게 아니라,
+> '사용량이 requests를 초과했는가 → Pod Priority → 초과량' 순으로 계산한 결과가
+> QoS 순서처럼 나타나는 것입니다. Guaranteed는 requests==limits라 정의상 초과가
+> 불가능해서 자동으로 후순위가 됩니다.
 > limits 초과로 인한 OOMKilled는 컨테이너 단위 즉시 종료, eviction은 노드 압박 시 파드
 > 단위 퇴거라는 점에서 다릅니다. 중요한 워크로드에 requests/limits를 반드시 설정해야 하는
 > 이유가 바로 이 축출 순위 때문입니다."

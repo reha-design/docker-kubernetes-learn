@@ -66,7 +66,10 @@
   해주는 관리자 (실제로는 ReplicaSet을 통해 관리).
 - **Service** = 파드들의 고정 접속 창구. **파드는 재생성 때마다 IP가 바뀌기 때문에** 필요.
   불변의 이름/ClusterIP를 제공하고, 뒤의 파드 목록은 label selector로 자동 갱신.
-  Day 7에서 readiness 안 된 파드를 EndpointSlice에서 빼던 주체가 Service.
+  Day 7에서 readiness 안 된 파드를 목록에서 빼던 주체는 정확히는 Service 자체가 아니라
+  **EndpointSlice 컨트롤러**다 — Service의 selector와 맞는 파드 중 Ready인 것만
+  EndpointSlice에 올리고, kube-proxy는 그 목록을 그대로 믿고 규칙을 만든다
+  ([Day 2 §5](day02-kubernetes-basics.md#5-service--왜-필요한가) 참고).
 - 한 줄: "Pod는 실행 단위, Deployment는 개수·버전 관리, Service는 바뀌는 파드 IP 앞의
   고정 창구."
 

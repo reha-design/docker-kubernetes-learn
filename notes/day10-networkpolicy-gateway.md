@@ -384,7 +384,7 @@ PS C:\Users\prist> curl.exe -H "Host: www.example.com" http://localhost:8888/get
 | 컨트롤러 설치 | `minikube addons enable ingress` (내장 addon) | Helm으로 별도 설치 (minikube 내장 addon 없음) |
 | 세부 기능 확장 | 벤더 annotation(`nginx.ingress.kubernetes.io/...`) | 표준 스펙 자체에 포함(TLSRoute, GRPCRoute 등) |
 | 프로토콜 | 사실상 HTTP(S) 전용 | HTTP/TCP/TLS/gRPC 등 프로토콜별 리소스 |
-| GA 시점 | v1.19(2020-09) `networking.k8s.io/v1` GA (오래된 표준, Google Open Source Blog 확인) | 2023년 v1.0 GA, 2026-02 v1.5로 기능 확장 중 |
+| GA 시점 | v1.19(**2020-08-26 릴리스**)에서 `networking.k8s.io/v1` GA — 베타로 4년 가까이 머물다 승격된 오래된 표준 (인용한 Google Open Source Blog 글이 2020-09자라 날짜를 혼동하기 쉬움) | 2023년 v1.0 GA, **2026-02-27 v1.5**에서 TLSRoute·ReferenceGrant가 Standard로 승격 |
 | 권한 분리 | 어려움 (리소스 하나에 다 뭉침) | GatewayClass/Gateway/HTTPRoute를 RBAC으로 따로 제어 가능 |
 
 ---
