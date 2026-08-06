@@ -6,12 +6,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A personal learning log for Docker and Kubernetes, written in Korean, aimed at interview prep. There is no source code, build system, or test suite — the entire repo is markdown notes plus real command output captured from hands-on practice (mostly on Windows with Docker Desktop/WSL2 and minikube).
 
+## Starting a session — read NEXT-SESSION.md first
+
+`NEXT-SESSION.md` at the repo root is the handoff document between sessions and machines. **Read it at the start of every session, before doing anything else** — even when the user only says "hi" or something equally short. It states what was completed last time, what the next day's session is meant to cover, and how to run it.
+
+The expected opening move: read it, then ask the user to confirm they want to do the session it describes (e.g. "오늘은 Day 13 — 모의 면접 1차로 학습할 준비가 되셨나요?"). If they want something else, follow that instead. Update the file at the end of each session so the next one can pick up.
+
+This exists because the user works across multiple PCs, and Claude's memory directory is per-machine while the repo is not.
+
 ## Structure
 
+- `NEXT-SESSION.md` — cross-session/cross-machine handoff: current state, the next session's plan, and how to run it
 - `README.md` — repo overview, index of learning entries ("학습 기록"), and the forward roadmap ("학습 로드맵") planning upcoming Day topics
 - `notes/day01-docker-basics.md`, `notes/day02-kubernetes-basics.md`, etc. — one file per learning session ("Day N")
 
-When starting a new day's session, pick the topic from the README roadmap (and the previous day's `**다음 학습 목표**:` line). After finishing a day, update both the "학습 기록" list and the roadmap if the plan shifted.
+When starting a new day's session, pick the topic from `NEXT-SESSION.md` (or, if it is stale, the README roadmap and the previous day's `**다음 학습 목표**:` line). After finishing a day, update the "학습 기록" list, the roadmap if the plan shifted, and `NEXT-SESSION.md`.
 
 ## Conventions for notes files
 
