@@ -149,7 +149,9 @@ Helm이 "빈칸(`{{ }}`)에 값을 채워넣는" 템플릿 방식이라면, Kust
 템플릿 언어(Go template)는 강력하지만 문법을 새로 배워야 하고, `{{ if }}`가 중첩되면
 YAML도 아니고 코드도 아닌 애매한 파일이 된다. Kustomize는 "원본은 항상 유효한 순수
 YAML로 유지하고, 차이만 패치로 표현"하는 쪽을 택해서 진입장벽을 낮추고, `kubectl`에
-`-k` 옵션으로 직접 내장(별도 설치 불필요)될 만큼 단순하게 설계됐다.
+`-k` 옵션으로 직접 내장(별도 설치 불필요)될 만큼 단순하게 설계됐다. (다만 kubectl에
+내장된 kustomize 버전은 standalone `kustomize` CLI보다 뒤처지는 경우가 많으므로, 최신
+기능을 쓸 땐 `kubectl version`과 별개로 내장 버전을 확인해야 한다.)
 
 > **면접 답변**: "Kustomize는 템플릿 문법 없이, 공통 base YAML에 환경별 패치를 얹어
 > 다른 결과물을 만드는 도구입니다. Helm처럼 릴리스 개념이나 버전 이력은 없고, 그냥
@@ -228,10 +230,16 @@ YAML을 환경별로 살짝 다르게 찍어내는" 도구.** 실무에서는 He
 
 ### 왜 이렇게 설계됐는가
 
-Deployment/ReplicaSet/StatefulSet 컨트롤러 자체가 이미 K8s가 기본 내장한 Operator다.
-CRD/Operator는 "원하는 상태 읽기 → 실제 상태 확인 → 다르면 맞추기"라는 **Day 4의 YAML
-선언형 전환과 동일한 리컨실 패턴**을, 3rd party가 자기 도메인(DB, 인증서, 메시지 큐 등)에
-대해 쓸 수 있게 일반화한 것이다.
+Deployment/ReplicaSet/StatefulSet 컨트롤러가 이미 "원하는 상태 읽기 → 실제 상태 확인 →
+다르면 맞추기"라는 **Day 4의 YAML 선언형 전환과 동일한 리컨실 패턴**으로 동작하고 있다.
+CRD/Operator는 그 패턴을 3rd party가 자기 도메인(DB, 인증서, 메시지 큐 등)에 대해 쓸 수
+있게 일반화한 것이다.
+
+> **용어 주의**: 내장 컨트롤러를 "K8s가 기본 내장한 Operator"라고 부르면 면접에서
+> 지적당할 수 있다. 공식 정의상 **Operator는 커스텀 리소스(CRD)를 사용하는 확장**을
+> 가리키고, 내장 컨트롤러는 내장 리소스를 다루므로 그냥 **컨트롤러**다. 정확히는
+> "Operator는 내장 컨트롤러와 **동일한 컨트롤러 패턴**을 커스텀 리소스에 적용한 것"이라고
+> 말해야 한다.
 
 ### Go 코드로 본 Reconcile 패턴 (kubebuilder 스타일, 개념 확인용 — 실행하지 않음)
 
@@ -348,9 +356,21 @@ test-client-allowed           0/1     Completed   0               3d19h
 ### 5.2 Kustomize `configMapGenerator` — 값이 바뀌면 이름도 바뀌게 만들기
 
 **문제 상황**: ConfigMap을 고정된 이름(`app-config`)으로 두고 내용만 바꿔서 재적용하면,
-이미 떠 있는 Pod는 재시작되지 않는 한 새 값을 못 읽는다. Deployment 컨트롤러 입장에서는
-"Pod 템플릿(참조하는 ConfigMap **이름**)이 안 바뀌었으니 아무것도 할 필요 없다"고
-판단하기 때문이다.
+**환경변수로 주입한 경우**(`env`/`envFrom`) 이미 떠 있는 Pod는 재시작되지 않는 한 새 값을
+못 읽는다. 환경변수는 컨테이너 생성 시점에 한 번 확정되기 때문이다. Deployment 컨트롤러
+입장에서도 "Pod 템플릿(참조하는 ConfigMap **이름**)이 안 바뀌었으니 아무것도 할 필요
+없다"고 판단해서 롤아웃을 일으키지 않는다.
+
+> **주의 — 볼륨 마운트는 다르다**: ConfigMap을 **볼륨으로 마운트**한 경우는 kubelet이
+> 주기적으로 동기화해서 **파일 내용이 자동으로 갱신된다**(공식 문서의 "Mounted ConfigMaps
+> are updated automatically"). 갱신까지는 kubelet sync 주기 + 캐시 TTL만큼 지연이 있고,
+> `subPath`로 마운트한 파일과 `immutable: true`인 ConfigMap은 예외로 갱신되지 않는다.
+> 즉 "ConfigMap 변경은 Pod에 전혀 전파되지 않는다"는 건 **환경변수 주입에만 해당하는
+> 이야기**다. 다만 파일이 갱신돼도 애플리케이션이 그 파일을 다시 읽어야(watch/reload)
+> 실제로 반영되므로, 리로드 기능이 없는 앱이면 결국 롤아웃이 필요하다.
+> (출처: kubernetes.io — Configure a Pod to Use a ConfigMap)
+
+아래 실습은 `envFrom`(환경변수 주입)을 쓴 케이스라, 롤아웃을 강제할 필요가 있는 상황이다.
 
 **해결책**: `configMapGenerator`는 ConfigMap을 **내용 기반 해시가 붙은 이름**으로
 생성하고, 그 ConfigMap을 참조하는 모든 리소스(Deployment의 `envFrom` 등)의 참조
@@ -358,11 +378,12 @@ test-client-allowed           0/1     Completed   0               3d19h
 해시가 바뀌면 참조 이름이 바뀌고, 참조 이름이 바뀌면 Pod 템플릿이 바뀐 것으로
 간주되어 정상적으로 롤링 업데이트가 일어난다.
 
-> **왜 이렇게 설계됐는가**: ConfigMap 변경은 그 자체로 Pod에 전파되는 메커니즘이
-> 없다(Kubernetes 기본 동작). `configMapGenerator`는 이 문제를 새 메커니즘을
-> 추가하는 대신, 기존에 이미 존재하는 "Pod 템플릿이 바뀌면 롤링 업데이트한다"는
-> Deployment 컨트롤러의 동작을 그대로 활용해서 우회한다 — 이름을 바꿔서 컨트롤러가
-> "이건 다른 리소스다"라고 착각하게 만드는 영리한 트릭이다.
+> **왜 이렇게 설계됐는가**: ConfigMap 값이 바뀌었다고 해서 그 값을 쓰는 Pod를
+> 자동으로 재시작해주는 메커니즘은 Kubernetes에 없다(볼륨 마운트 파일은 갱신되지만
+> 프로세스 재시작이나 롤아웃은 일어나지 않는다). `configMapGenerator`는 이 문제를
+> 새 메커니즘을 추가하는 대신, 기존에 이미 존재하는 "Pod 템플릿이 바뀌면 롤링
+> 업데이트한다"는 Deployment 컨트롤러의 동작을 그대로 활용해서 우회한다 — 이름을
+> 바꿔서 컨트롤러가 "이건 다른 리소스다"라고 판단하게 만드는 영리한 트릭이다.
 
 `kustomize-demo/base/deployment.yaml`에 `app-config`를 참조하는 `envFrom`을
 추가하고, `kustomize-demo/overlays/withconfig/kustomization.yaml`에
@@ -424,14 +445,29 @@ kustomize-demo-84bc85b764   0         0         0       42s
 변경이 실제 롤링 업데이트로 이어지는 전체 체인이 확인됐다.
 
 **실무 주의점**: 기존 `app-config-tm2b4ck8d2`는 자동으로 삭제되지 않고 그대로
-남는다. `kubectl apply -k`만으로는 고아가 된 이전 리소스를 정리(prune)해주지
-않으며, 정리하려면 `--prune` 옵션을 별도로 사용해야 한다.
+남는다. `kubectl apply -k`만으로는 고아가 된 이전 리소스를 정리(prune)해주지 않는다.
+정리 방법은 두 가지인데 둘 다 그냥 `--prune`만 붙이면 되는 게 아니다:
+
+- **라벨 기반(기존 방식)** — `kubectl apply -k ... --prune -l <셀렉터>`처럼 **라벨
+  셀렉터(또는 `--all`)를 반드시 함께** 줘야 한다. 게다가 kustomize가 생성한 ConfigMap에
+  공통 라벨이 없으면 셀렉터에 걸리지 않으므로, `kustomization.yaml`에 `labels`
+  (구 `commonLabels`)로 공통 라벨을 먼저 붙여둬야 동작한다. 이 방식은 server-side
+  apply와 함께 쓸 수 없고 오탐/누락 이슈가 알려져 있다.
+- **ApplySet 기반(신규 방식)** — `KUBECTL_APPLYSET=true` 환경변수 + `--prune
+  --applyset=<이름>`. kubectl v1.27에서 도입됐고 **아직 alpha**라 프로덕션 의존은
+  이르다(KEP-3659).
+
+실무에서는 이래서 정리까지 자동으로 해주는 Argo CD / Flux 같은 GitOps 컨트롤러나,
+릴리스 단위로 리소스를 추적하는 Helm에 맡기는 경우가 많다.
 
 > **면접 답변**: "`configMapGenerator`는 ConfigMap 이름에 내용 기반 해시를 붙이고,
 > 그 ConfigMap을 참조하는 리소스의 이름도 자동으로 재작성합니다. ConfigMap 값이
 > 바뀌면 해시가 바뀌고, 참조 이름이 바뀌니 Pod 템플릿이 바뀐 것으로 간주되어
-> Deployment 컨트롤러가 정상적으로 롤링 업데이트를 수행합니다. 다만 이전 ConfigMap은
-> 자동 삭제되지 않아서 `--prune` 없이는 고아 리소스가 쌓입니다."
+> Deployment 컨트롤러가 정상적으로 롤링 업데이트를 수행합니다. 참고로 ConfigMap을
+> 볼륨으로 마운트한 경우엔 kubelet이 파일을 자동 갱신해주지만 롤아웃은 일어나지
+> 않고, 환경변수로 주입하면 아예 갱신되지 않기 때문에 이런 해시 트릭이 필요합니다.
+> 다만 이전 ConfigMap은 자동 삭제되지 않아서, 라벨 셀렉터를 붙인 `--prune`이나
+> GitOps 도구 없이는 고아 리소스가 쌓입니다."
 
 ### 5.3 Operator는 변화를 어떻게 "알아채는가" — List+Watch, Informer, Work Queue (이론)
 
@@ -440,14 +476,20 @@ CRD 인스턴스를 만들거나 수정했을 때 Operator가 그 변화를 아�
 kube-proxy가 Service/EndpointSlice 변화를 감지하는 것과 같은 client-go
 **informer 패턴**이다. (이 항목은 이론 확인 목적이라 실습 없이 개념만 정리한다.)
 
-1. **Reflector** — `LIST`로 현재 전체 목록과 `resourceVersion`(etcd의 논리적
-   타임스탬프)을 가져온 뒤, `WATCH ...?resourceVersion=N`으로 그 시점 이후의
+1. **Reflector** — `LIST`로 현재 전체 목록과 `resourceVersion`을 가져온 뒤,
+   `WATCH ...?resourceVersion=N`으로 그 시점 이후의
    변화만 스트리밍받는다. 이 Watch는 끊기지 않고 계속 열려있는 HTTP 연결이다.
    연결이 끊기면 마지막 resourceVersion부터 재구독하고, 그 리비전이 etcd
    압축(compaction)으로 이미 사라졌으면 `410 Gone`을 받아 처음부터 다시 LIST한다.
+   (`resourceVersion`은 내부적으로 etcd 리비전에 대응하지만, 공식 API 규약상
+   **불투명(opaque) 문자열**이다 — 클라이언트가 숫자로 파싱하거나 크기를 비교해선
+   안 되고, 서버에 되돌려주는 토큰으로만 써야 한다.)
 2. **DeltaFIFO** — Reflector가 받은 이벤트(Added/Updated/Deleted/Sync)를 객체
-   키와 함께 순서대로 담는 큐. 같은 객체에 대한 연속 이벤트는 처리 전이면
-   합쳐진다(compress).
+   키별로 델타 목록에 **순서대로 누적**하는 큐. 흔히 "같은 객체의 이벤트가 합쳐진다"고
+   설명되지만, 실제 client-go의 `dedupDeltas`는 **연속된 Deleted 델타 두 개**만
+   하나로 합친다(re-list와 watch가 같은 삭제를 중복 전달하는 경우 대비). Added나
+   Updated는 합쳐지지 않고 그대로 쌓인다. 중복 제거가 본격적으로 일어나는 곳은
+   4번의 Work Queue다.
 3. **Indexer(로컬 캐시)** — DeltaFIFO에서 꺼낸 이벤트를 스레드 세이프한 메모리
    캐시에 반영한다. Reconcile 로직은 API 서버에 매번 GET하지 않고 이 캐시를
    읽는다 — API 서버/etcd 부하를 줄이기 위한 설계다. 여러 컨트롤러가 같은
@@ -460,9 +502,15 @@ kube-proxy가 Service/EndpointSlice 변화를 감지하는 것과 같은 client-
    바뀌었는지"가 아니라 **원하는 상태와 실제 상태를 처음부터 다시 비교**하는
    레벨 기반(level-triggered) 방식이라, 이벤트를 하나 놓쳐도 다음 트리거 때
    자기 치유된다.
-6. **Resync** — 일정 주기로 로컬 캐시의 모든 객체를 다시 Work Queue에 재주입해서
-   "혹시 놓친 이벤트가 없는지" 안전망 역할을 한다. API 서버에 다시 묻는 게
-   아니라 이미 가진 캐시를 재사용한다.
+6. **Resync** — 일정 주기로 로컬 캐시의 모든 객체에 대해 update 알림을 다시
+   전달해서 Reconcile을 재실행시킨다. client-go 주석대로 "authoritative storage와의
+   상호작용을 추가하지 않는다" — **API 서버에 다시 묻는 게 아니라 이미 가진 캐시를
+   그대로 재생(replay)**한다.
+   그래서 resync는 **"watch 이벤트를 놓친 경우"를 고쳐주지 못한다**. 이벤트를
+   놓쳤다면 캐시 자체가 틀린 상태이고, resync는 그 틀린 캐시를 다시 전달할 뿐이기
+   때문이다. 놓친 이벤트에 대한 실제 안전망은 **watch 재연결 / `410 Gone` 후 재LIST /
+   watch bookmark**가 담당한다. resync가 실제로 막아주는 건 *Reconcile이 실패했거나,
+   컨트롤러가 관리하는 외부 실제 상태가 K8s 밖에서 변경(드리프트)된 경우*다.
 
 ```
 API 서버 (etcd)
@@ -471,7 +519,7 @@ API 서버 (etcd)
 Reflector
    │ Added/Updated/Deleted + 키
    ▼
-DeltaFIFO → Indexer(로컬 캐시) ── 주기적 Resync(전체 재주입)
+DeltaFIFO → Indexer(로컬 캐시) ── 주기적 Resync(캐시 재생, API 서버 조회 없음)
    │ 이벤트 핸들러 트리거
    ▼
 Work Queue (키만, 중복 제거, 재시도 백오프)
